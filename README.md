@@ -8,10 +8,12 @@ In Claude Code:
 
 ```text
 /plugin marketplace add gab3mioni/laravel-claude-code-skills
-/plugin install laravel-claudecode-toolkit
+/plugin install laravel-claudecode-toolkit@laravel-claude-code-skills
 ```
 
-For local development, clone the repo and point the marketplace at the path:
+The first command registers this repo as a marketplace; the second installs the plugin from it. The `@laravel-claude-code-skills` suffix is the marketplace identifier (matches the GitHub repo name).
+
+For local development, clone the repo and point the marketplace at the local path:
 
 ```bash
 git clone https://github.com/gab3mioni/laravel-claude-code-skills
@@ -19,7 +21,7 @@ git clone https://github.com/gab3mioni/laravel-claude-code-skills
 
 ```text
 /plugin marketplace add /absolute/path/to/laravel-claude-code-skills
-/plugin install laravel-claudecode-toolkit
+/plugin install laravel-claudecode-toolkit@laravel-claude-code-skills
 ```
 
 ## What's included

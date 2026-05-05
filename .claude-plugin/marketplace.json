@@ -1,0 +1,37 @@
+{
+  "name": "laravel-claude-code-skills",
+  "description": "Marketplace for the laravel-claudecode-toolkit Claude Code plugin",
+  "owner": {
+    "name": "Gabriel Mioni"
+  },
+  "plugins": [
+    {
+      "name": "laravel-claudecode-toolkit",
+      "source": {
+        "source": "github",
+        "repo": "gab3mioni/laravel-claude-code-skills"
+      },
+      "description": "Specialized Laravel agents and skills for Claude Code — backend, frontend (React/Vue via Inertia), DevOps, code review, and security in the Laravel 12 ecosystem.",
+      "homepage": "https://github.com/gab3mioni/laravel-claude-code-skills",
+      "repository": "https://github.com/gab3mioni/laravel-claude-code-skills",
+      "license": "MIT",
+      "keywords": [
+        "laravel",
+        "laravel-12",
+        "php",
+        "inertia",
+        "react",
+        "vue",
+        "pest",
+        "octane",
+        "code-review",
+        "security",
+        "agents",
+        "skills"
+      ],
+      "author": {
+        "name": "Gabriel Mioni"
+      }
+    }
+  ]
+}

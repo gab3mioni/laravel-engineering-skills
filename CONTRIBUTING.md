@@ -98,10 +98,18 @@ After cloning, register the local checkout as a marketplace and install the plug
 
 ```text
 /plugin marketplace add /absolute/path/to/laravel-claude-code-skills
-/plugin install laravel-claudecode-toolkit
+/plugin install laravel-claudecode-toolkit@laravel-claude-code-skills
 ```
 
-Reload after edits with `/plugin reload laravel-claudecode-toolkit` (or restart the Claude Code session).
+The marketplace identifier (`laravel-claude-code-skills`) is defined in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The plugin identifier (`laravel-claudecode-toolkit`) is defined in [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json).
+
+Validate the manifests before committing:
+
+```bash
+claude plugin validate .
+```
+
+Reload after edits with `/reload-plugins` (or restart the Claude Code session).
 
 ## Roadmap
 
