@@ -1,0 +1,9 @@
+{
+  "name": "laravel-claudecode-toolkit",
+  "version": "0.1.0",
+  "description": "Specialized Laravel agents and skills for Claude Code — backend, frontend (React/Vue via Inertia), DevOps, code review, and security in the Laravel 12 ecosystem.",
+  "author": {
+    "name": "Gabriel Mioni"
+  },
+  "license": "MIT"
+}
