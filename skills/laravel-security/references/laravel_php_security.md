@@ -1,10 +1,10 @@
 # OWASP Top 10 — Laravel & PHP
 
-Walkthrough of OWASP Top 10 categories applied to Laravel 12 / PHP 8.3+. Loaded when auditing security posture or investigating a specific OWASP category.
+Walkthrough of OWASP Top 10:2025 categories applied to Laravel 12 / PHP 8.3+. Loaded when auditing security posture or investigating a specific OWASP category.
 
 ## A01 — Broken access control
 
-The most common high-impact category. Manifestations in Laravel:
+The most common high-impact category. Since 2025 it also absorbs SSRF (formerly its own category). Manifestations in Laravel:
 
 ### IDOR (Insecure Direct Object Reference)
 
@@ -55,6 +55,38 @@ Route::post('/api/posts', [...])->middleware('auth:sanctum');
 Route::post('/api/posts', [...])->middleware(['auth:sanctum', 'abilities:posts:write']);
 ```
 
+### SSRF (folded into A01 in 2025)
+
+Server-Side Request Forgery — the server fetches a URL the user controls, reaching hosts the user couldn't:
+
+```php
+// BAD — server fetches whatever URL the user provides
+public function fetchUrl(Request $request)
+{
+    return Http::get($request->input('url'));
+}
+
+// GOOD — allowlist of hosts
+private array $allowedHosts = ['api.example.com', 'cdn.partner.com'];
+
+public function fetchUrl(Request $request)
+{
+    $url = $request->input('url');
+    $host = parse_url($url, PHP_URL_HOST);
+
+    abort_unless(in_array($host, $this->allowedHosts, true), 422);
+
+    return Http::timeout(5)->get($url);
+}
+```
+
+Additional defenses:
+- Resolve hostname before request; reject if it resolves to private IP (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8)
+- Disable HTTP redirects (`->withoutRedirecting()`) or follow only to allowed hosts
+- Set tight timeouts
+
+⚠️ Cloud metadata services (`169.254.169.254`) are common SSRF targets — leak instance credentials. Always block private IP ranges.
+
 ### Audit grep
 
 ```bash
@@ -64,7 +96,85 @@ grep -rn 'middleware.*auth' routes/ | grep -v 'can:\|abilities:'
 
 ---
 
-## A02 — Cryptographic failures
+## A02 — Security misconfiguration
+
+### Production hardening checklist
+
+| Setting | Required |
+|---|---|
+| `APP_ENV=production` | yes |
+| `APP_DEBUG=false` | yes — prevents stack trace leaks |
+| `APP_KEY` set | yes |
+| `php artisan config:cache` | yes |
+| `php artisan route:cache` | yes |
+| `.env` permissions: 600, web user owner | yes |
+| Telescope/Pulse/Debugbar disabled or auth-gated | yes |
+| Default web server pages removed | yes |
+| Directory listing disabled | yes |
+
+### CSP (Content Security Policy)
+
+A well-tuned CSP contains XSS even when output encoding fails. Recommended starting baseline:
+
+```text
+default-src 'self';
+script-src 'self' https://cdn.example.com;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https:;
+connect-src 'self' https://api.example.com;
+frame-ancestors 'none';
+form-action 'self';
+base-uri 'self';
+```
+
+Tighten over time:
+1. Start with `'unsafe-inline'` for styles to avoid breaking
+2. Use Report-Only mode (`Content-Security-Policy-Report-Only`) to find violations
+3. Remove `'unsafe-inline'` once violations are fixed (use nonces/hashes)
+4. Move scripts off CDN to your own domain when possible
+
+For Inertia SPAs, CSP is challenging due to inline scripts in the initial page render — use nonces.
+
+### Other headers
+
+See `laravel-security` SKILL.md §7 for the baseline header set (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).
+
+---
+
+## A03 — Software supply chain failures
+
+Expands the old "vulnerable & outdated components" category: supply chain covers lockfile integrity, typosquatted packages, and CI-side dependencies — not just outdated packages with CVEs.
+
+### Detection
+
+```bash
+composer audit                    # PHP deps with known CVEs
+composer outdated --direct        # what's old in your direct deps
+npm audit                         # JS deps
+npm audit fix                     # auto-fix non-breaking
+```
+
+Run `composer audit` and `npm audit` in CI. Block merge on critical/high vulns.
+
+### Triage
+
+| Severity | Action |
+|---|---|
+| Critical / High | Patch immediately or accept risk with mitigation (e.g., not using the vulnerable code path) |
+| Medium | Patch within sprint; document if deferred |
+| Low | Patch within next minor cycle |
+
+### Automation
+
+- **Dependabot** (GitHub) — automated PRs for security advisories
+- **Renovate** — more configurable; supports composer + npm + docker
+- **Snyk / Socket** — third-party scanners; some CVEs they catch before official disclosure
+
+⚠️ Anti-pattern: auto-merging dependency PRs without CI gates. Always run full test suite + audit on the PR.
+
+---
+
+## A04 — Cryptographic failures
 
 ### Password storage
 
@@ -110,7 +220,7 @@ class User extends Model
 
 ---
 
-## A03 — Injection
+## A05 — Injection
 
 ### SQL injection
 
@@ -173,7 +283,7 @@ CRLF in user input can split HTTP responses, enabling cache poisoning or session
 
 ---
 
-## A04 — Insecure design
+## A06 — Insecure design
 
 Architectural failures — covered at design review, not by code grep.
 
@@ -191,83 +301,7 @@ Run STRIDE on the feature before coding. See `general_security.md` §4.
 
 ---
 
-## A05 — Security misconfiguration
-
-### Production hardening checklist
-
-| Setting | Required |
-|---|---|
-| `APP_ENV=production` | yes |
-| `APP_DEBUG=false` | yes — prevents stack trace leaks |
-| `APP_KEY` set | yes |
-| `php artisan config:cache` | yes |
-| `php artisan route:cache` | yes |
-| `.env` permissions: 600, web user owner | yes |
-| Telescope/Pulse/Debugbar disabled or auth-gated | yes |
-| Default web server pages removed | yes |
-| Directory listing disabled | yes |
-
-### CSP (Content Security Policy)
-
-A well-tuned CSP contains XSS even when output encoding fails. Recommended starting baseline:
-
-```text
-default-src 'self';
-script-src 'self' https://cdn.example.com;
-style-src 'self' 'unsafe-inline';
-img-src 'self' data: https:;
-connect-src 'self' https://api.example.com;
-frame-ancestors 'none';
-form-action 'self';
-base-uri 'self';
-```
-
-Tighten over time:
-1. Start with `'unsafe-inline'` for styles to avoid breaking
-2. Use Report-Only mode (`Content-Security-Policy-Report-Only`) to find violations
-3. Remove `'unsafe-inline'` once violations are fixed (use nonces/hashes)
-4. Move scripts off CDN to your own domain when possible
-
-For Inertia SPAs, CSP is challenging due to inline scripts in the initial page render — use nonces.
-
-### Other headers
-
-See `laravel-security` SKILL.md §7 for the baseline header set (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).
-
----
-
-## A06 — Vulnerable & outdated components
-
-### Detection
-
-```bash
-composer audit                    # PHP deps with known CVEs
-composer outdated --direct        # what's old in your direct deps
-npm audit                         # JS deps
-npm audit fix                     # auto-fix non-breaking
-```
-
-Run `composer audit` and `npm audit` in CI. Block merge on critical/high vulns.
-
-### Triage
-
-| Severity | Action |
-|---|---|
-| Critical / High | Patch immediately or accept risk with mitigation (e.g., not using the vulnerable code path) |
-| Medium | Patch within sprint; document if deferred |
-| Low | Patch within next minor cycle |
-
-### Automation
-
-- **Dependabot** (GitHub) — automated PRs for security advisories
-- **Renovate** — more configurable; supports composer + npm + docker
-- **Snyk / Socket** — third-party scanners; some CVEs they catch before official disclosure
-
-⚠️ Anti-pattern: auto-merging dependency PRs without CI gates. Always run full test suite + audit on the PR.
-
----
-
-## A07 — Identification & authentication failures
+## A07 — Authentication failures
 
 (Auth flow details live in `laravel-auth`.)
 
@@ -307,7 +341,7 @@ Recovery codes: generate 10 single-use codes at MFA enable. Store hashed.
 
 ---
 
-## A08 — Software & data integrity failures
+## A08 — Software or data integrity failures
 
 ### Deserialization
 
@@ -327,6 +361,8 @@ Better: use JSON for serialized payloads.
 
 ### Supply chain
 
+(Dependency CVE detection and triage live in A03.)
+
 - Pin dependency versions in `composer.lock` and `package-lock.json` — commit them
 - Verify package authenticity (Composer checks PGP signatures when available)
 - Review new dependencies before adding (license, maintainer reputation, recent activity)
@@ -340,7 +376,7 @@ Better: use JSON for serialized payloads.
 
 ---
 
-## A09 — Security logging & monitoring failures
+## A09 — Security logging & alerting failures
 
 (See `laravel-security` SKILL.md §15 for what to log and how.)
 
@@ -371,35 +407,54 @@ Trigger on:
 
 ---
 
-## A10 — SSRF (Server-Side Request Forgery)
+## A10 — Mishandling of exceptional conditions
+
+New category in 2025. Errors handled badly either leak internals or fail open.
+
+### Debug mode leaks
+
+`APP_DEBUG=true` in production renders full stack traces — file paths, env values, executed queries. Always `false` in prod (see A02 checklist).
+
+### Fail-open exception handling
 
 ```php
-// BAD — server fetches whatever URL the user provides
-public function fetchUrl(Request $request)
-{
-    return Http::get($request->input('url'));
+// BAD — authorization exception swallowed; execution continues
+try {
+    $this->authorize('update', $post);
+} catch (Throwable $e) {
+    Log::warning('authorize failed');
 }
+$post->update($request->validated());
 
-// GOOD — allowlist of hosts
-private array $allowedHosts = ['api.example.com', 'cdn.partner.com'];
-
-public function fetchUrl(Request $request)
-{
-    $url = $request->input('url');
-    $host = parse_url($url, PHP_URL_HOST);
-
-    abort_unless(in_array($host, $this->allowedHosts, true), 422);
-
-    return Http::timeout(5)->get($url);
-}
+// GOOD — let AuthorizationException propagate (403), or abort explicitly
+$this->authorize('update', $post);
+$post->update($request->validated());
 ```
 
-Additional defenses:
-- Resolve hostname before request; reject if it resolves to private IP (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8)
-- Disable HTTP redirects (`->withoutRedirecting()`) or follow only to allowed hosts
-- Set tight timeouts
+Any `catch` that continues past a security check fails open. Default is fail-closed: rethrow, `abort()`, or return an error response.
 
-⚠️ Cloud metadata services (`169.254.169.254`) are common SSRF targets — leak instance credentials. Always block private IP ranges.
+### Exception detail in JSON APIs
+
+Never return `$e->getMessage()` to clients — internal messages leak table names, class names, business rules. Normalize rendering in `bootstrap/app.php`:
+
+```php
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (Throwable $e, Request $request) {
+        if ($request->is('api/*') && ! config('app.debug')) {
+            return response()->json(['message' => 'Server error'], 500);
+        }
+    });
+})
+```
+
+Laravel converts `ModelNotFoundException` to 404 automatically — but a manual catch that echoes the exception leaks the model class name. Prefer `abort(404)` over exposing exception internals.
+
+### Audit grep
+
+```bash
+# Exception internals surfaced to clients
+grep -rn 'getMessage()' app/Http/
+```
 
 ---
 
@@ -494,6 +549,9 @@ grep -rn 'env(' app/ routes/ database/
 
 # APP_DEBUG in production env files
 grep APP_DEBUG .env.example .env.production 2>/dev/null
+
+# Exception internals surfaced to clients
+grep -rn 'getMessage()' app/Http/
 ```
 
 Run as part of pre-release security review or as a CI step.

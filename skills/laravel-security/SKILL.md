@@ -54,18 +54,21 @@ For a deeper walkthrough of OWASP Top 10 in Laravel and framework-agnostic secur
 
 ## 1. OWASP Top 10 — quick map
 
+OWASP Top 10:2025 codes. SSRF (formerly A10:2021) is now part of A01.
+
 | OWASP | Laravel touchpoint | Where in skills |
 |---|---|---|
 | A01 Broken Access Control | IDOR, missing Policy, route-model binding without authorize | `laravel-backend` §13 + `authorization_patterns.md` |
-| A02 Cryptographic Failures | weak hashing, hardcoded keys, missing TLS | §11 (this skill) |
-| A03 Injection | SQL (raw + interpolation), command, LDAP, header | `laravel-backend/references/security.md` §4 + §3 (this skill) |
-| A04 Insecure Design | architectural — covered in design review | `references/laravel_php_security.md` §4 |
-| A05 Security Misconfiguration | `APP_DEBUG=true` prod, weak CSP, exposed `.env` | §6 (this skill) |
-| A06 Vulnerable & Outdated Components | unpatched deps | §13 (this skill) |
-| A07 Identification & Authentication Failures | weak passwords, brute force, session fixation | `laravel-auth` + §10–§11 here |
-| A08 Software & Data Integrity Failures | unsigned packages, deserialization | §15 (this skill) |
-| A09 Security Logging & Monitoring | missing audit trail, no alerting | §14 (this skill) |
-| A10 Server-Side Request Forgery | outbound HTTP with user-controlled URL, no allowlist | §4 (this skill) |
+| A01 — SSRF (folded in) | outbound HTTP with user-controlled URL, no allowlist | `references/laravel_php_security.md` §1 |
+| A02 Security Misconfiguration | `APP_DEBUG=true` prod, weak CSP, exposed `.env` | §6 (this skill) |
+| A03 Software Supply Chain Failures | unpatched deps, lockfile integrity, CI dependencies | §13 (this skill) |
+| A04 Cryptographic Failures | weak hashing, hardcoded keys, missing TLS | §11 (this skill) |
+| A05 Injection | SQL (raw + interpolation), command, LDAP, header | `laravel-backend/references/security.md` §4 + §3 (this skill) |
+| A06 Insecure Design | architectural — covered in design review | `references/laravel_php_security.md` §6 |
+| A07 Authentication Failures | weak passwords, brute force, session fixation | `laravel-auth` + §10–§11 here |
+| A08 Software or Data Integrity Failures | unsigned packages, deserialization | §15 (this skill) |
+| A09 Security Logging & Alerting Failures | missing audit trail, no alerting | §14 (this skill) |
+| A10 Mishandling of Exceptional Conditions | `APP_DEBUG` leaks, fail-open catch blocks, exception detail in APIs | `references/laravel_php_security.md` §10 |
 
 For each category in depth, see `references/laravel_php_security.md`.
 
@@ -240,14 +243,14 @@ class SecureHeaders
 }
 ```
 
-For full CSP recipes per stack (Inertia SPA, server-rendered, mixed), see `references/laravel_php_security.md` §5.
+For full CSP recipes per stack (Inertia SPA, server-rendered, mixed), see `references/laravel_php_security.md` §2.
 
 ---
 
 ## 8. Rate limiting
 
 ```php
-// bootstrap/app.php or RouteServiceProvider
+// AppServiceProvider::boot()
 RateLimiter::for('api', function (Request $r) {
     return Limit::perMinute(60)->by($r->user()?->id ?: $r->ip());
 });
@@ -346,7 +349,7 @@ public function show(Upload $upload): StreamedResponse
 }
 ```
 
-For S3 with signed URLs, content-type sniffing prevention, and AV scanning, see `references/laravel_php_security.md` §10.
+For S3 with signed URLs, content-type sniffing prevention, and AV scanning, see `laravel-backend/references/security.md` §9.
 
 ---
 
@@ -626,7 +629,7 @@ Single-page scan list for `security` and `code-review`.
 | No CSP header | §7 | `curl -I | grep -i content-security-policy` |
 | `SESSION_SECURE_COOKIE=false` in prod | §9 | env review |
 | Login route without `throttle` middleware | §8 | route inspection |
-| Outbound HTTP with user-controlled URL, no allowlist (SSRF) | §1 (A10) | grep |
+| Outbound HTTP with user-controlled URL, no allowlist (SSRF) | §1 (A01) | grep |
 | Telescope/Pulse/Debugbar visible in prod | §6 | route review + middleware |
 | Authorization via `if ($user->role === ...)` | (laravel-backend §13) | grep `->role ==` |
 

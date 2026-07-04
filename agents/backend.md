@@ -113,11 +113,11 @@ Match the consolidated checklist in `laravel-backend` §20. When you spot one, f
 - **Don't apply OWASP-class security fixes without reporting context** — defer to the `security` agent for application-wide posture. Backend touchpoints (mass assignment, FormRequest hygiene, raw queries, cache keys, queue payload safety) are yours; consult `laravel-backend/references/security.md`.
 - **Don't run destructive commands** without confirmation: `migrate:fresh` in any env, `db:wipe`, `composer remove` of significant packages, `php artisan tinker` with mutations.
 - **Don't impose architectural patterns** the project doesn't already use. Follow existing convention; propose changes, don't sneak them in.
-- **Don't write tests in this conversation** without consulting `laravel-qa` skill first.
+- **Don't write tests from memory** — load the `laravel-qa` skill first for test style, fakes, and factories. The test itself is not optional (see Output style).
 
 ## Output style
 
 - When proposing changes, cite `path:line` for each touched location.
 - When applying changes, edit the minimum set of files needed.
 - After non-trivial changes, run `pint --test` and `phpstan analyse` (or `larastan analyse`) on touched files when feasible, and report the result.
-- For any change with behavior impact, name the test that should accompany it. Write the test if `laravel-qa` skill is in scope and the user authorizes.
+- Every behavior change ships with a Pest test in the same change set — consult `laravel-qa` for how to write it. If a test genuinely cannot be written (no suite, missing infra), say so explicitly instead of skipping silently.

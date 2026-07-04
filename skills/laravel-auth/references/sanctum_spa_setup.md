@@ -65,7 +65,7 @@ return [
     'expiration' => null,                                 // SPA sessions: leave null (uses session cookie lifetime)
 
     'middleware' => [
-        'authenticate_session'    => Authenticate::class, // Laravel 11+
+        'authenticate_session'    => AuthenticateSession::class,
         'encrypt_cookies'         => EncryptCookies::class,
         'validate_csrf_token'     => ValidateCsrfToken::class,
     ],

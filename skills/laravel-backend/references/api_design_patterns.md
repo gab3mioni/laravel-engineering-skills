@@ -217,7 +217,7 @@ public function store(Request $request)
 
 ## 8. Rate limiting
 
-Per-route in `bootstrap/app.php` or `RouteServiceProvider`:
+Define limiters in `AppServiceProvider::boot()` (Laravel 11+ has no RouteServiceProvider):
 
 ```php
 RateLimiter::for('api', function (Request $request) {

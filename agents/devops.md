@@ -88,7 +88,7 @@ composer show laravel/horizon --quiet 2>/dev/null && echo HAS_HORIZON
 composer show laravel/telescope --quiet 2>/dev/null && echo HAS_TELESCOPE
 
 # CI / quality
-test -f .github/workflows && echo HAS_GH_ACTIONS
+test -d .github/workflows && echo HAS_GH_ACTIONS
 test -f .gitlab-ci.yml && echo HAS_GITLAB_CI
 test -f Dockerfile && echo HAS_DOCKERFILE
 test -f docker-compose.yml && echo HAS_COMPOSE

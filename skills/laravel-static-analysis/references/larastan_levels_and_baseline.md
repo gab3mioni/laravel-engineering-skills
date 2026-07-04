@@ -125,9 +125,13 @@ public function show(): array
 }
 ```
 
+### Level 10
+
+Strict about **implicit** mixed too: a parameter with no type declaration is treated as `mixed` and reported, not just values explicitly typed `mixed`. Added in PHPStan 2.0.
+
 ### Level `max`
 
-Currently equivalent to level 9. Tracks the latest as PHPStan adds checks.
+Alias for the highest available level — currently **10**. Tracks the latest as PHPStan adds checks.
 
 ⚠️ **Anti-pattern:** pinning to `max` and skipping levels. When PHPStan adds new checks, your CI breaks at random; predict-and-bump is calmer.
 
@@ -335,32 +339,15 @@ parameters:
         - stubs/MyServiceStub.php
 ```
 
-## 7. Common Larastan extensions for the Spatie ecosystem
+## 7. Third-party PHPStan extensions
+
+Install `phpstan/extension-installer` so any PHPStan extension shipped by a dependency (including Larastan itself) registers automatically — no manual `includes:` per package:
 
 ```bash
-composer require --dev larastan/larastan-spatie-permission
-composer require --dev larastan/larastan-spatie-data
+composer require --dev phpstan/extension-installer
 ```
 
-```yaml
-# phpstan.neon
-includes:
-    - ./vendor/larastan/larastan/extension.neon
-    - ./vendor/larastan/larastan-spatie-permission/extension.neon
-    - ./vendor/larastan/larastan-spatie-data/extension.neon
-```
-
-Ecosystem extensions add type understanding for:
-- `spatie/laravel-permission` — `$user->hasRole()`, `$user->can()` typing
-- `spatie/laravel-data` — Data class property hooks, `from()` returns
-- `spatie/laravel-query-builder` — chainable filter/sort calls
-
-Detect first, install second:
-
-```bash
-composer show spatie/laravel-permission --quiet 2>/dev/null && \
-  composer require --dev larastan/larastan-spatie-permission
-```
+Some ecosystem packages bundle their own PHPStan extension or stubs; others have community extensions. **Verify the package exists on Packagist before recommending it** (`composer show -a <vendor/package>` or search packagist.org filtered by type `phpstan-extension`) — never install from a guessed name.
 
 ## 8. Generic Eloquent — making relationships precise
 

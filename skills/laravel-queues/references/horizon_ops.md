@@ -283,8 +283,9 @@ php artisan horizon:continue-supervisor <name>
 
 # Status
 php artisan horizon:status                     # is master process running?
-php artisan horizon:list                        # all supervisors and process counts
-php artisan horizon:supervisor                 # detail per supervisor
+php artisan horizon:list                       # deployed machines running Horizon
+php artisan horizon:supervisors                # all supervisors and process counts
+php artisan horizon:supervisor-status <name>   # status of one supervisor
 
 # Maintenance
 php artisan horizon:purge                      # clean up stale workers

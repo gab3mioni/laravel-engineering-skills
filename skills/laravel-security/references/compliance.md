@@ -119,7 +119,7 @@ class DeleteUserDataJob implements ShouldQueue
 Define retention per data category. Run a scheduled job to enforce:
 
 ```php
-// app/Console/Kernel.php (or routes/console.php in Laravel 11+)
+// routes/console.php — Laravel 11+ has no Console Kernel
 Schedule::command('privacy:enforce-retention')->daily();
 
 class EnforceRetentionCommand extends Command

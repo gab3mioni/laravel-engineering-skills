@@ -316,7 +316,7 @@ Queue::failing(function (JobFailed $e) {
 
 ## 8. Rate limiting
 
-Define limiters in `RouteServiceProvider::boot()` or anywhere wired during boot:
+Define limiters in `AppServiceProvider::boot()` or anywhere wired during boot:
 
 ```php
 RateLimiter::for('emails', function ($job) {
@@ -421,7 +421,7 @@ final class RotateApiKey implements ShouldQueue, ShouldBeEncrypted
 
 ## 11. Scheduler integration
 
-`routes/console.php` (or `Console\Kernel::schedule()` pre-Laravel 11):
+`routes/console.php` — Laravel 11+ has no Console Kernel:
 
 ```php
 use Illuminate\Support\Facades\Schedule;

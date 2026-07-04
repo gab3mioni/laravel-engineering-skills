@@ -39,7 +39,7 @@ trait HasOwnership
 ## 2. Gate `before` and `after`
 
 ```php
-// AuthServiceProvider::boot()
+// AppServiceProvider::boot() — Laravel 11+ has no AuthServiceProvider
 
 // Before — runs before every Policy/Gate check
 Gate::before(function (User $user, string $ability) {
@@ -92,7 +92,7 @@ $this->authorize('transfer', [$post, $newOwner]);   // multiple args via array
 When the resource isn't a model — feature flags, regions, billing tiers — use a Gate:
 
 ```php
-// AuthServiceProvider::boot()
+// AppServiceProvider::boot()
 Gate::define('access-region', function (User $user, string $regionCode) {
     return $user->permittedRegions->contains($regionCode);
 });
@@ -182,7 +182,7 @@ class ProcessPostJob implements ShouldQueue
 ### 6.2 Schedule / console commands
 
 ```php
-// app/Console/Kernel.php (or routes/console.php in Laravel 11+)
+// routes/console.php — Laravel 11+ has no Console Kernel
 Schedule::call(function () {
     Tenant::cursor()->each(function ($tenant) {
         Post::withoutGlobalScope(TenantScope::class)

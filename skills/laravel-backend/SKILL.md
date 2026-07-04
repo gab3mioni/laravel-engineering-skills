@@ -666,8 +666,8 @@ class PostPolicy
 Laravel 11+ auto-discovers `App\Models\Post` ↔ `App\Policies\PostPolicy`. Explicit registration if naming differs:
 
 ```php
-// AuthServiceProvider
-protected $policies = [Post::class => PostPolicy::class];
+// AppServiceProvider::boot() — Laravel 11+ has no AuthServiceProvider
+Gate::policy(Post::class, PostPolicy::class);
 ```
 
 ### 13.2 Invocation
@@ -687,7 +687,7 @@ Route::put('/posts/{post}', [...])->middleware('can:update,post');              
 ### 13.3 Gate (no model)
 
 ```php
-// AuthServiceProvider::boot()
+// AppServiceProvider::boot()
 Gate::define('access-admin', fn (User $u) => $u->is_admin);
 
 Gate::allows('access-admin');
