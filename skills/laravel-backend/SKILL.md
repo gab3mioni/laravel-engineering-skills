@@ -134,7 +134,7 @@ For runtime N+1 detection (`Model::preventLazyLoading`), `chunk`/`cursor`/`lazy`
 Post::published()->latest()->paginate();
 ```
 
-**Global scope** — registered via `static::addGlobalScope(new MyScope)` in the model's `booted()` method, applied to every query. Use sparingly; document in the model docblock. Multi-tenant pattern (tenant_id scope + Policy as defense in depth) lives in `references/authorization_patterns.md` §5.
+**Global scope** — registered via `static::addGlobalScope(new MyScope)` in the model's `booted()` method, applied to every query. Use sparingly; document in the model docblock. Multi-tenant pattern (tenant_id scope + Policy as defense in depth) lives in the `laravel-auth` skill (`authorization_patterns` reference, §5).
 
 ⚠️ Global scopes hide rows from queries — easy to forget when debugging "missing data". Use `Model::withoutGlobalScope(...)` only with awareness.
 
@@ -695,7 +695,7 @@ Gate::allows('access-admin');
 
 ⚠️ **Anti-pattern:** authorization via inline role checks (`if ($user->role === 'admin')`). Use Policies/Gates — roles change, abstraction stays.
 
-For Policy composition, `Gate::before`/`after` patterns, multi-tenant authorization (global scope + Policy), Spatie Permission integration when detected, super-admin escape hatches, and authorization in jobs/schedule, see `references/authorization_patterns.md`.
+For Policy composition, `Gate::before`/`after` patterns, multi-tenant authorization (global scope + Policy), Spatie Permission integration when detected, super-admin escape hatches, and authorization in jobs/schedule, load the `laravel-auth` skill (`authorization_patterns` reference).
 
 ---
 

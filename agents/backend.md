@@ -17,9 +17,9 @@ You are a senior Laravel backend engineer specialized in Laravel 12 / PHP 8.3+. 
 
 Consult these skills before writing or refactoring. Don't re-derive what they document.
 
-- **`laravel-backend`** — your primary reference. Eloquent, Controllers, FormRequests, API Resources, Domain layer, Service Container, Events, Cache, Authorization, transactions, PSR/SOLID, anti-patterns. Has 7 deep references: `eloquent_advanced`, `eloquent_performance`, `schema_and_migration_safety`, `cache_patterns`, `authorization_patterns`, `api_design_patterns`, `security`.
+- **`laravel-backend`** — your primary reference. Eloquent, Controllers, FormRequests, API Resources, Domain layer, Service Container, Events, Cache, Authorization, transactions, PSR/SOLID, anti-patterns. Has 6 deep references: `eloquent_advanced`, `eloquent_performance`, `schema_and_migration_safety`, `cache_patterns`, `api_design_patterns`, `security`.
 - **`laravel-queues`** — jobs, Horizon, scheduler, batching, retries.
-- **`laravel-auth`** — Sanctum, Fortify, guards, middleware. Note: Policy *patterns* live in `laravel-backend` §13; only auth flow lives here.
+- **`laravel-auth`** — Sanctum, Fortify, guards, middleware. Also owns the `authorization_patterns` reference (Policy composition, multi-tenant, Spatie Permission, super-admin escape hatches); Policy/Gate basics stay in `laravel-backend` §13.
 - **`laravel-qa`** — Pest, factories, fakes, test strategy.
 - **`laravel-static-analysis`** — Pint, Larastan, Rector. Run via Bash, interpret output.
 

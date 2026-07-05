@@ -43,7 +43,7 @@ Route::middleware(['auth', 'can:access-admin'])->group(function () {
 
 ### Cross-tenant access
 
-In multi-tenant apps, every query and Policy must filter by tenant. See `laravel-backend/references/authorization_patterns.md` §5 for defense-in-depth (global scope + Policy).
+In multi-tenant apps, every query and Policy must filter by tenant. Load the `laravel-auth` skill (`authorization_patterns` reference, §5) for defense-in-depth (global scope + Policy).
 
 ### Token abilities (Sanctum)
 
@@ -297,7 +297,18 @@ Architectural failures — covered at design review, not by code grep.
 
 ### Mitigation: threat modeling at design time
 
-Run STRIDE on the feature before coding. See `general_security.md` §4.
+Run STRIDE on the feature before coding — for each component or data flow, ask:
+
+| Threat | Question |
+|---|---|
+| **S**poofing | Can an attacker impersonate this entity? |
+| **T**ampering | Can data in transit or at rest be modified? |
+| **R**epudiation | Can an actor deny they did the action? (countered by audit log) |
+| **I**nformation disclosure | Can sensitive data leak (logs, errors, headers, URLs)? |
+| **D**enial of service | Can a single user exhaust resources? |
+| **E**levation of privilege | Can a low-privilege user become high-privilege? |
+
+Run STRIDE during design review of any feature touching auth, payments, PII, or external integrations.
 
 ---
 
@@ -555,3 +566,17 @@ grep -rn 'getMessage()' app/Http/
 ```
 
 Run as part of pre-release security review or as a CI step.
+
+## Security review cadence
+
+Integrate security reviews into the normal engineering flow:
+
+| Trigger | Review |
+|---|---|
+| New feature touching auth, payments, PII | Threat model (STRIDE — see A06) |
+| New external integration | Authentication, signature verification, rate limit |
+| New endpoint accepting input | Validation, authorization, rate limit |
+| New dependency | License + CVE check |
+| Pre-release | Full audit of changed code |
+| Quarterly | Permission audit, secret rotation, dep upgrade |
+| Annually | Full pen test (external) |

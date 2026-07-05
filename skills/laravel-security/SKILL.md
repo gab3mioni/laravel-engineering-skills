@@ -22,7 +22,7 @@ Application-wide security for Laravel 12 / PHP 8.3+. Operates above the per-feat
 |---|---|
 | Auth flow implementation (Sanctum, Fortify, login/MFA) | `laravel-auth` |
 | Backend security touchpoints (mass assignment, FormRequest, raw queries) | `laravel-backend` (§ 4, §13) and `references/security.md` there |
-| Policy / Gate authoring patterns | `laravel-backend` §13 + `authorization_patterns.md` reference |
+| Policy / Gate authoring patterns | `laravel-backend` §13 + `laravel-auth` (`authorization_patterns` reference) |
 | Test scenarios for security regressions | `laravel-qa` |
 | WCAG / a11y audits | `laravel-a11y` |
 
@@ -44,10 +44,9 @@ A single control is one bypass away from compromise. Layered controls create res
 | Data | Encryption at rest, scoped queries, RLS |
 | Operational | Audit log, monitoring, dependency scanning |
 
-For a deeper walkthrough of OWASP Top 10 in Laravel and framework-agnostic security principles, see:
+For a deeper walkthrough of OWASP Top 10 in Laravel, see:
 
-- `references/laravel_php_security.md` — OWASP Top 10 applied, PHP-specific gotchas
-- `references/general_security.md` — principles independent of framework
+- `references/laravel_php_security.md` — OWASP Top 10:2025 applied, PHP-specific gotchas, STRIDE, audit greps, review cadence
 - `references/compliance.md` — LGPD, GDPR, SOC 2, PCI, HIPAA
 
 ---
@@ -58,12 +57,12 @@ OWASP Top 10:2025 codes. SSRF (formerly A10:2021) is now part of A01.
 
 | OWASP | Laravel touchpoint | Where in skills |
 |---|---|---|
-| A01 Broken Access Control | IDOR, missing Policy, route-model binding without authorize | `laravel-backend` §13 + `authorization_patterns.md` |
+| A01 Broken Access Control | IDOR, missing Policy, route-model binding without authorize | `laravel-backend` §13 + `laravel-auth` (`authorization_patterns`) |
 | A01 — SSRF (folded in) | outbound HTTP with user-controlled URL, no allowlist | `references/laravel_php_security.md` §1 |
 | A02 Security Misconfiguration | `APP_DEBUG=true` prod, weak CSP, exposed `.env` | §6 (this skill) |
 | A03 Software Supply Chain Failures | unpatched deps, lockfile integrity, CI dependencies | §13 (this skill) |
 | A04 Cryptographic Failures | weak hashing, hardcoded keys, missing TLS | §11 (this skill) |
-| A05 Injection | SQL (raw + interpolation), command, LDAP, header | `laravel-backend/references/security.md` §4 + §3 (this skill) |
+| A05 Injection | SQL (raw + interpolation), command, LDAP, header | `laravel-backend` (`security` reference §4) + §3 (this skill) |
 | A06 Insecure Design | architectural — covered in design review | `references/laravel_php_security.md` §6 |
 | A07 Authentication Failures | weak passwords, brute force, session fixation | `laravel-auth` + §10–§11 here |
 | A08 Software or Data Integrity Failures | unsigned packages, deserialization | §15 (this skill) |
@@ -110,7 +109,7 @@ DB::select('SELECT * FROM x WHERE id = ?', [$id])
 ->whereRaw('name = ?', [$name])
 ```
 
-⚠️ Column names are not bindable. For sortable columns from user input, use an allowlist (see `laravel-backend/references/api_design_patterns.md` §6).
+⚠️ Column names are not bindable. For sortable columns from user input, use an allowlist (load `laravel-backend`, `api_design_patterns` reference §6).
 
 ```bash
 grep -rnE 'DB::raw\(.*\$|whereRaw\(.*\$|orderByRaw\(.*\$|selectRaw\(.*\$' app/
@@ -166,7 +165,7 @@ Inbound webhooks (Stripe, GitHub) can't include the CSRF token. Exclude their ro
 })
 ```
 
-⚠️ When excluding from CSRF, **always** verify request authenticity via the provider's signature (HMAC, JWT). See `laravel-backend/references/api_design_patterns.md` §9.
+⚠️ When excluding from CSRF, **always** verify request authenticity via the provider's signature (HMAC, JWT). Load `laravel-backend` (`api_design_patterns` reference §9).
 
 ---
 
@@ -323,7 +322,7 @@ Route::middleware(['auth', 'password.confirm'])->group(function () {
 
 ## 10. File upload safety
 
-Quick recap (full coverage in `laravel-backend/references/security.md` §9):
+Quick recap (full coverage in `laravel-backend`, `security` reference §9):
 
 ```php
 // FormRequest
@@ -349,7 +348,7 @@ public function show(Upload $upload): StreamedResponse
 }
 ```
 
-For S3 with signed URLs, content-type sniffing prevention, and AV scanning, see `laravel-backend/references/security.md` §9.
+For S3 with signed URLs, content-type sniffing prevention, and AV scanning, load `laravel-backend` (`security` reference §9).
 
 ---
 
@@ -535,7 +534,7 @@ Centralized log destination (Sentry, Datadog, CloudWatch, ELK) — never *only* 
 Log::info('payment.received', $request->all());   // BAD — leaks card, email, password
 ```
 
-Always scrub. See `laravel-backend/references/security.md` §7 for scrub helpers.
+Always scrub. Load `laravel-backend` (`security` reference §7) for scrub helpers.
 
 ---
 
@@ -640,10 +639,10 @@ Single-page scan list for `security` and `code-review`.
 | Topic | Skill / reference |
 |---|---|
 | OWASP Top 10 — full Laravel walkthrough | `references/laravel_php_security.md` |
-| Framework-agnostic security principles | `references/general_security.md` |
+| STRIDE threat modeling + review cadence | `references/laravel_php_security.md` (A06 + end of file) |
 | LGPD / GDPR / SOC 2 / PCI / HIPAA implementation | `references/compliance.md` |
 | Auth flow (Sanctum, Fortify, MFA, password reset) | `laravel-auth` |
-| Backend security touchpoints (mass assignment, FormRequest, raw queries) | `laravel-backend/references/security.md` |
-| Authorization patterns (Policy, Gate, multi-tenant, Sanctum tokens) | `laravel-backend/references/authorization_patterns.md` |
+| Backend security touchpoints (mass assignment, FormRequest, raw queries) | `laravel-backend` skill (`security` reference) |
+| Authorization patterns (Policy, Gate, multi-tenant, Sanctum tokens) | `laravel-auth` skill (`authorization_patterns` reference) |
 | Test scenarios for security regressions | `laravel-qa` |
-| Webhook signature verification (HMAC + idempotency) | `laravel-backend/references/api_design_patterns.md` §9 |
+| Webhook signature verification (HMAC + idempotency) | `laravel-backend` skill (`api_design_patterns` reference §9) |

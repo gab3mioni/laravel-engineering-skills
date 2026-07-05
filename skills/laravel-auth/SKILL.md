@@ -337,7 +337,7 @@ Combine both: `Route::middleware(['auth:sanctum', 'ability:posts:write'])` cover
 
 ### 8.3 Multi-tenant authorization
 
-Combine a global scope (tenant_id) with Policies as defense in depth. Pattern lives in **`laravel-backend` `references/authorization_patterns.md`** (multi-tenant section).
+Combine a global scope (tenant_id) with Policies as defense in depth. Pattern lives in **`references/authorization_patterns.md`** (multi-tenant section).
 
 For broader Policy composition, `Gate::before`/`after`, super-admin escape hatches, Spatie Permission integration, see the same reference doc.
 
@@ -481,7 +481,7 @@ if (Auth::guard('admin')->check()) { /* ... */ }
 |---|---|
 | OWASP, password hashing internals, 2FA threat model, dep CVEs | `laravel-security` |
 | Eloquent `User` model, FormRequests for login/register | `laravel-backend` |
-| Policy composition, `Gate::before`/`after`, multi-tenant pattern | `laravel-backend` `references/authorization_patterns.md` |
+| Policy composition, `Gate::before`/`after`, multi-tenant pattern | `references/authorization_patterns.md` (this skill) |
 | Inertia shared `auth.user`, encryptHistory on logout | `laravel-inertia` (§4, §11) |
 | Ziggy filtering of admin routes | `laravel-frontend` (§6) |
 | Pest helpers `actingAs`, `Sanctum::actingAs($user, ['ability'])` | `laravel-qa` |
