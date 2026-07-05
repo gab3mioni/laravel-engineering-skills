@@ -131,8 +131,6 @@ Rule of 3: start in the controller; extract to an Action at the first business r
 | Multi-channel message | Notification; email-only → Mailable |
 | Runtime config value | `config(...)` — `env()` only inside `config/*.php` |
 
----
-
 ## 1. Eloquent
 
 ### 1.1 Model anatomy
@@ -224,8 +222,6 @@ Observer = class with lifecycle-named methods (`created`, `updating`, `deleting`
 
 ⚠️ Don't put HTTP calls or queue dispatches in observers without `afterCommit()` (see "Transactions & afterCommit").
 
----
-
 ## 2. Migrations, factories, seeders
 
 ### 2.1 Migrations
@@ -240,9 +236,7 @@ return new class extends Migration {
             $t->string('title', 255);
             $t->text('body');
             $t->timestampTz('published_at')->nullable();
-            $t->json('meta')->nullable();
             $t->timestamps();
-            $t->softDeletes();
 
             $t->index(['user_id', 'published_at']);
         });
@@ -295,8 +289,6 @@ Post::factory()->published()->for(User::factory())->count(5)->create();
 
 `DatabaseSeeder` is the entry point. Keep seeders **idempotent** (`updateOrCreate` for non-test fixtures) so reruns don't duplicate.
 
----
-
 ## 3. Controllers
 
 **Rules (corrective only):**
@@ -308,8 +300,6 @@ Post::factory()->published()->for(User::factory())->count(5)->create();
 **Route-model binding (corrective only):**
 - Bind by column with `{post:slug}`; implicit binding 404s automatically.
 - Custom resolution only when the default can't express it: `Route::bind('post', fn ($v) => Post::published()->whereSlug($v)->firstOrFail());`
-
----
 
 ## 4. FormRequests & validation
 
@@ -342,8 +332,6 @@ final class StorePostRequest extends FormRequest
 - Custom rule: implement `ValidationRule` (`php artisan make:rule Uppercase`), apply inline: `'code' => ['required', new Uppercase]`.
 - Conditional rules: `required_if`, `required_unless`, `required_with`, `prohibited_if`, `sometimes`; for complex cases build the array dynamically inside `rules()`.
 
----
-
 ## 5. API Resources
 
 ```php
@@ -370,8 +358,6 @@ return PostResource::collection(Post::with('author')->paginate());
 - Always use `whenLoaded()` for relationships — exposing an unloaded relation triggers N+1.
 - Disable the `data` envelope globally with `JsonResource::withoutWrapping()` in `AppServiceProvider::boot()` if not used.
 - For versioning, conditional attributes (`when`, `whenPivotLoaded`, `whenCounted`), error format, pagination, sorting/filtering, idempotency keys, rate limiting, and webhooks, see `references/api_design_patterns.md`.
-
----
 
 ## 6. Domain layer — Actions, Services, DTOs
 
@@ -411,7 +397,6 @@ final readonly class PostData
     public function __construct(
         public string $title,
         public string $body,
-        public ?Carbon $published_at = null,
     ) {}
 
     public static function fromRequest(StorePostRequest $r): self
@@ -419,13 +404,10 @@ final readonly class PostData
         return new self(
             title: $r->validated('title'),
             body: $r->validated('body'),
-            published_at: $r->date('published_at'),
         );
     }
 }
 ```
-
----
 
 ## 7. Service container & providers
 
@@ -450,8 +432,6 @@ Contextual binding: `$this->app->when(LegacyImporter::class)->needs(PostReposito
 
 ⚠️ **Anti-pattern:** IO in `register()` (`DB::`, `Http::`, `env()` indirectly via models).
 
----
-
 ## 8. Events & queued listeners
 
 Choice heuristic: see the table in "Model events & Observers".
@@ -462,15 +442,11 @@ Choice heuristic: see the table in "Model events & Observers".
 - Listener dispatched inside a transaction → `afterCommit` applies (see "Transactions & afterCommit").
 - For `Event::fake()` and assertion helpers, see `laravel-qa`.
 
----
-
 ## 9. Mail & notifications
 
 **Rule:** prefer **Notification** when delivery may span multiple channels or needs DB persistence (`via()` returning `['mail', 'database']`); **Mailable** for email-only (`envelope()` + `content()`, Laravel 9+ shape).
 
 Queue by default — `Mail::to($user)->queue(...)` or `implements ShouldQueue` on the Notification. If sent inside a transaction, pair with `afterCommit` (see "Transactions & afterCommit").
-
----
 
 ## 10. Cache
 
@@ -481,8 +457,6 @@ $posts = Cache::remember("posts.feed.{$userId}", 300, fn () => Post::feed($userI
 ⚠️ **Anti-pattern:** cache key derived from raw user input without hashing. Risks key injection and oversized keys. Use `hash('xxh128', $input)` for arbitrary input.
 
 For stampede prevention (lock + recompute, `Cache::flexible`, jitter), tagged invalidation, atomic locks (`Cache::lock`), layered caches, and invalidation strategies, see `references/cache_patterns.md`.
-
----
 
 ## 11. Middleware
 
@@ -497,8 +471,6 @@ In Laravel 11+, middleware is registered in `bootstrap/app.php` — there is no 
 ```
 
 **Terminable middleware** — implement `terminate(Request, Response): void` for post-response work.
-
----
 
 ## 12. Config & environment
 
@@ -515,8 +487,6 @@ $key = config('services.stripe.key');
 ⚠️ **Anti-pattern detector:** `grep -rn "env(" app/ routes/ database/` — anything matching is a bug waiting to happen.
 
 **Convention:** third-party config under `config/services.php`; app-specific config gets its own file (`config/billing.php`).
-
----
 
 ## 13. Authorization — Policies & Gates
 
@@ -564,8 +534,6 @@ Gate::allows('access-admin');
 
 For Policy composition, `Gate::before`/`after` patterns, multi-tenant authorization (global scope + Policy), Spatie Permission integration when detected, super-admin escape hatches, and authorization in jobs/schedule, load the `laravel-auth` skill.
 
----
-
 ## 14. Logging & exceptions
 
 **Convention:** dot-notation message + structured context, never interpolated strings — `Log::info('post.published', ['post_id' => $post->id])`.
@@ -582,8 +550,6 @@ In Laravel 11+, exception handling lives in `bootstrap/app.php` — there is no 
 ```
 
 ⚠️ **Anti-pattern:** `Log::info($request->all())` without scrubbing — leaks PII, tokens, passwords. Mask before logging.
-
----
 
 ## 15. Transactions & afterCommit
 
