@@ -1,11 +1,11 @@
 ---
 name: laravel-auth
-description: Authentication and authorization in Laravel 12 — Sanctum (SPA cookie mode + API tokens with abilities), Fortify (headless 2FA, password reset, email verification), Breeze (starter kit), Passport (legacy/full OAuth2), session vs token guards, auth/auth:sanctum/verified/password.confirm middleware, route protection, password hashing and rehash, login throttling, remember-me, multi-guard apps, Policies and Gates, authorizing in jobs and console. Consumed by the security, backend, and code-review agents.
+description: Authentication and authorization in Laravel 12 — Sanctum (SPA cookies + API tokens), Fortify, Breeze, Passport, guards, middleware, Policies/Gates, hashing. Use when choosing Sanctum vs Passport vs Fortify, wiring SPA cookie auth, designing token abilities, protecting routes, writing/reviewing Policies, or auditing auth in a PR. Symptoms — "419 on login from SPA", "logged out on every request", "user logged out after deploy", "auth()->user() is null in a queued job", "token-protected route returns 401 with a valid token". Consumed by the security, backend, and code-review agents.
 ---
 
 # Laravel Auth — Authentication & authorization
 
-Identity and access for Laravel 12. Covers **who you are** (authentication: Sanctum, Fortify, Breeze, sessions, tokens) and **what you can do** (authorization: Policies, Gates, middleware). Stack-neutral on the frontend — examples that mention Inertia/SPA delegate UI specifics to `laravel-react`/`laravel-vue`.
+Identity and access for Laravel 12. Covers **who you are** (authentication: Sanctum, Fortify, Breeze, sessions, tokens) and **what you can do** (authorization: Policies, Gates, middleware). Stack-neutral on the frontend — examples that mention Inertia/SPA delegate UI specifics to the `laravel-react`/`laravel-vue` agents.
 
 ## When to use this skill
 
@@ -21,11 +21,13 @@ Identity and access for Laravel 12. Covers **who you are** (authentication: Sanc
 
 | Topic | Use instead |
 |---|---|
-| OWASP Top 10, password hashing internals, dependency CVEs, rate-limit headers, 2FA threat model | `laravel-security` |
-| Eloquent for `User`, FormRequests for login, controller patterns | `laravel-backend` |
-| Inertia shared `auth.user` prop, encryptHistory on logout | `laravel-inertia` |
-| Vite/Ziggy filtering of auth-protected route names | `laravel-frontend` |
-| Pest auth helpers (`actingAs`, `Sanctum::actingAs`) | `laravel-qa` |
+| OWASP Top 10, password hashing internals, dependency CVEs, rate-limit headers, 2FA threat model | `laravel-security` skill |
+| Eloquent for `User`, FormRequests for login, controller patterns | `laravel-backend` skill |
+| Inertia shared `auth.user` prop, encryptHistory on logout | `laravel-inertia` skill |
+| Vite wiring / Wayfinder route generation for the SPA | `laravel-frontend` skill |
+| Pest auth helpers (`actingAs`, `Sanctum::actingAs`) | `laravel-qa` skill |
+| Building the login/2FA UI components | `laravel-react` / `laravel-vue` **agents** |
+| Session driver infra (Redis), deploy-time session invalidation | `devops` **agent** |
 
 ## Stack assumptions
 
@@ -33,6 +35,35 @@ Identity and access for Laravel 12. Covers **who you are** (authentication: Sanc
 - `App\Models\User` extends `Authenticatable`
 - Default `web` (session) and `api` guards in `config/auth.php`
 - **Detection-based:** the agent runs `composer show laravel/sanctum laravel/fortify laravel/breeze laravel/passport --quiet 2>/dev/null` to discover which auth packages are installed before recommending a flow.
+
+---
+
+## Workflows
+
+### Workflow A — Wire Sanctum SPA mode
+
+1. **Detect** what's installed: `composer show laravel/sanctum laravel/fortify --quiet`. Missing? `composer require laravel/sanctum && php artisan install:api && php artisan migrate`. Confirm the frontend origin (host + port) and whether it's same-origin, cross-subdomain, or cross-site (cross-site → SPA mode does not apply, use tokens).
+2. **Configure the 4 touchpoints** (all four, every time — see §3.1 for the exact snippets):
+   - `SANCTUM_STATEFUL_DOMAINS` = the frontend origin, host + port, no scheme
+   - `SESSION_DOMAIN` = `.example.com` (leading dot) for cross-subdomain; bare host for same-origin
+   - `config/cors.php` → `supports_credentials: true` + explicit `allowed_origins` (no `*`)
+   - Client → axios `withCredentials: true` + `withXSRFToken: true` (fetch: manual `X-XSRF-TOKEN` header)
+   - Plus `->withMiddleware(fn (Middleware $m) => $m->statefulApi())` in `bootstrap/app.php`.
+3. **Wire the client login flow**: `GET /sanctum/csrf-cookie` once per session, then `POST /login`, then API calls ride the session cookie (§3.1 client flow).
+4. **Verify** with the end-to-end curl smoke test in [`references/sanctum_spa_setup.md`](references/sanctum_spa_setup.md) §11 — CSRF cookie → extract XSRF token → login → authenticated request. Do not call the wiring done until the smoke test passes. On failure, see [Troubleshooting](#troubleshooting) and the per-environment matrix in the same reference.
+5. **Run the detection greps** from the [consolidated anti-pattern table](#rules--anti-patterns-consolidated) — at minimum: throttle on `/login`, `session()->regenerate()` in the login path, no tokens in localStorage.
+
+### Workflow B — Audit auth in a PR
+
+Run in order; each step maps to a row in the consolidated table below.
+
+1. **Login routes throttled?** `grep -rn "Route::post('/login'" routes/` — flag any without `->middleware('throttle:...)` or `ThrottlesLogins`.
+2. **Session regenerated on login?** Review login controllers/actions: `Auth::login()`/`Auth::attempt()` must be followed by `$request->session()->regenerate()` (§2).
+3. **Destructive routes confirmed?** Review `DELETE` routes and account/email/token mutations — `password.confirm` middleware present? (§7)
+4. **Auth in queue context?** `grep -rn "auth()->user()" app/Jobs app/Console` — fails outside HTTP; the actor must be passed explicitly and checked via `Gate::forUser()` (§8.1).
+5. **New tokens created with abilities?** `grep -rn "createToken(" app/` — flag calls without an abilities array, and `tokenCan` used as the only ownership check (§3.2, §8.2).
+6. **Password handling:** `grep -rn "md5\|sha1" app/` near passwords/tokens; `==` comparison instead of `Hash::check` (§9).
+7. Finish with the full [consolidated table](#rules--anti-patterns-consolidated) for anything the diff touches (verified middleware, reset-link throttle, multi-guard smells).
 
 ---
 
@@ -113,7 +144,7 @@ php artisan migrate
 
 ### 3.1 SPA cookie mode (the Inertia / first-party SPA default)
 
-The SPA and the API live on the same registrable domain (`app.example.com` + `api.example.com` work; cross-site does not). Authentication uses Laravel's session cookie + CSRF — no tokens involved.
+The SPA and the API live on the same registrable domain (`app.example.com` + `api.example.com` work; cross-site does not). Authentication uses Laravel's session cookie + CSRF — no tokens involved. Wiring steps: [Workflow A](#workflow-a--wire-sanctum-spa-mode).
 
 **Four config touch points:**
 
@@ -245,32 +276,16 @@ Recovery codes are single-use; regenerate after any used. Threat-model details (
 
 ## 5. Breeze
 
-Starter kit. Generates auth controllers, Blade/Inertia/Vue/React pages, and routes. Designed to be **read, then modified or replaced** — not a runtime dependency.
-
-```bash
-composer require laravel/breeze --dev
-php artisan breeze:install react        # or vue, blade, api
-php artisan migrate
-npm install && npm run build
-```
-
-**When to use:**
-- Greenfield app where you want a working login screen in 5 minutes.
-- Reference implementation when wiring Sanctum SPA + Fortify-style flows by hand.
-
-**When not to use:**
-- Existing app with a custom auth UI — Breeze will overwrite views.
-- Stripped-down API (use `breeze:install api` if you must, but consider Sanctum tokens directly).
+Starter kit: generates auth controllers, Blade/Inertia/Vue/React pages, and routes. Meant to be **read, then modified or replaced** — not a runtime dependency. Install: `composer require laravel/breeze --dev && php artisan breeze:install react` (or `vue`, `blade`, `api`), then migrate and build.
+Use for greenfield apps or as a reference implementation of Sanctum SPA + Fortify-style flows. Avoid on an existing app with custom auth UI — it overwrites views. Beyond that, defer to the official docs.
 
 ---
 
 ## 6. Passport
 
-Full OAuth2 server. Issues tokens to **third-party** clients via standard grant types (authorization code, client credentials, password — deprecated upstream).
-
-**Use only when** you are an identity provider to other apps. For first-party SPAs, Sanctum SPA mode is the right answer.
-
-Install: `composer require laravel/passport && php artisan passport:install`. Beyond that, Passport's surface area is too large for this skill — defer to the official docs.
+Full OAuth2 server: issues tokens to **third-party** clients via standard grant types (authorization code, client credentials).
+**Use only when** you are an identity provider to other apps. For first-party SPAs, Sanctum SPA mode is the right answer (§1 anti-pattern).
+Install: `composer require laravel/passport && php artisan passport:install`. Passport's surface area is too large for this skill — defer to the official docs.
 
 ---
 
@@ -303,7 +318,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 ## 8. Authorization — Policies & Gates
 
-The `laravel-backend` skill (§13) covers the basics: defining a Policy, calling `$this->authorize()`, registering Gates, route middleware `can:`. **All of that applies.** This skill adds the auth-adjacent angles.
+The `laravel-backend` skill (§13) covers the basics: defining a Policy, calling `$this->authorize()`, registering Gates, route middleware `can:`. **All of that applies.** This skill adds the auth-adjacent angles; deep patterns → [`references/authorization_patterns.md`](references/authorization_patterns.md) (local to this skill).
 
 ### 8.1 Authorization in jobs / console
 
@@ -337,7 +352,7 @@ Combine both: `Route::middleware(['auth:sanctum', 'ability:posts:write'])` cover
 
 ### 8.3 Multi-tenant authorization
 
-Combine a global scope (tenant_id) with Policies as defense in depth. Pattern lives in **`references/authorization_patterns.md`** (multi-tenant section).
+Combine a global scope (tenant_id) with Policies as defense in depth. Pattern lives in [`references/authorization_patterns.md`](references/authorization_patterns.md) (multi-tenant section).
 
 For broader Policy composition, `Gate::before`/`after`, super-admin escape hatches, Spatie Permission integration, see the same reference doc.
 
@@ -363,56 +378,26 @@ Hash::needsRehash($user->password);            // returns true if cost or algori
 - Never compare passwords with `==`. Always `Hash::check`.
 - ⚠️ **Anti-pattern:** `md5($password)` or `sha1($password)` anywhere. Even for "non-sensitive" tokens — a leak teaches users you don't take crypto seriously.
 
-For algorithm trade-offs (bcrypt vs argon2id, cost calibration, timing attacks), see `laravel-security`.
+For algorithm trade-offs (bcrypt vs argon2id, cost calibration, timing attacks), see `laravel-security` — this skill owns the flow code above; that skill owns the threat rationale.
 
 ---
 
-## 10. Email verification
+## 10. Email verification — corrective rules
 
-```php
-// User must implement MustVerifyEmail
-class User extends Authenticatable implements MustVerifyEmail
-{
-    use Notifiable;
-}
+Standard flow (implement `MustVerifyEmail`, Fortify/Breeze routes, `sendEmailVerificationNotification()`) is assumed known. What goes wrong:
 
-// Routes (Fortify or Breeze provides these by default)
-Route::middleware(['auth', 'verified'])->get('/dashboard', ...);
-
-// Resend
-$request->user()->sendEmailVerificationNotification();
-
-// Manually mark as verified (e.g. when admin verifies on behalf)
-$user->markEmailAsVerified();
-```
-
-**Rules:**
 - The `verified` middleware blocks unverified users. Pair with a "Verify your email" page on the unverified path.
 - Verification links are signed (`signed` middleware) and have a TTL (`config/auth.php#verification.expire`, default 60 minutes).
-- ⚠️ **Anti-pattern:** treating an unverified email as authenticated for important actions. `verified` middleware on every meaningful route, not just `/dashboard`.
+- ⚠️ **Anti-pattern:** treating an unverified email as authenticated for important actions. `verified` middleware belongs on every meaningful route, not just `/dashboard`.
 
 ---
 
-## 11. Password reset
+## 11. Password reset — corrective rules
 
-Built-in via `Password::sendResetLink()` and `Password::reset()`. Fortify and Breeze wire the views. The token is stored hashed in `password_reset_tokens` and has a TTL.
+Standard flow (`Password::sendResetLink()` / `Password::reset()`, hashed token in `password_reset_tokens` with TTL, Fortify/Breeze views) is assumed known. What goes wrong:
 
-```php
-// Send link
-Password::sendResetLink(['email' => $email]);
-
-// Reset
-$status = Password::reset(
-    $request->only('email', 'password', 'password_confirmation', 'token'),
-    function (User $user, string $password) {
-        $user->forceFill(['password' => Hash::make($password)])->save();
-        event(new PasswordReset($user));
-    }
-);
-```
-
-**Rules:**
 - Throttle reset-link requests (`throttle:6,1` or stricter). Prevents email-bombing a known account.
+- Fire `event(new PasswordReset($user))` in the reset callback — listeners (session invalidation, audit) depend on it.
 - Invalidate other sessions after a reset: pair `auth.session` middleware with the `Authenticate Session` table.
 
 ---
@@ -443,20 +428,7 @@ if (Auth::guard('admin')->check()) { /* ... */ }
 
 ---
 
-## 13. Common pitfalls
-
-| Symptom | Likely cause |
-|---|---|
-| "419 Page Expired" right after login (SPA) | XSRF cookie not sent — missing `withCredentials` or wrong CORS / SANCTUM_STATEFUL_DOMAINS |
-| Logged out on every request (SPA) | `SESSION_DOMAIN` doesn't cover both subdomains — set to `.example.com` |
-| `auth()->user()` is null in queued job | No HTTP context — pass actor explicitly (§8.1) |
-| 2FA challenge loop | Session lost between login + challenge — check `SESSION_DRIVER` (don't use `array` in prod) |
-| `Hash::needsRehash` always true | Different algorithm/cost between hash creation and check — verify `config/hashing.php` |
-| Token-protected route returns 401 with valid token | Token revoked, expired, or `ability:` middleware mismatch — log `currentAccessToken()` |
-
----
-
-## 14. Anti-patterns — consolidated
+## Rules & anti-patterns (consolidated)
 
 | Smell | Section | Detection |
 |---|---|---|
@@ -468,6 +440,7 @@ if (Auth::guard('admin')->check()) { /* ... */ }
 | Destructive route without `password.confirm` | §7 | review `DELETE` routes |
 | `auth()->user()` inside a Job/Command | §8.1 | grep `auth\(\)->user\(\)` in `app/Jobs`, `app/Console` |
 | Token abilities used as ownership check | §8.2 | review controllers gating with `tokenCan` only |
+| New token created without abilities | §3.2 | grep `createToken(` without an abilities array |
 | `md5`/`sha1` of passwords or auth tokens | §9 | grep `md5\|sha1` near `password` |
 | Unverified email allowed past `/dashboard` | §10 | grep `auth` middleware without `verified` |
 | Reset-link endpoint not throttled | §11 | grep `sendResetLink` route without `throttle` |
@@ -475,13 +448,39 @@ if (Auth::guard('admin')->check()) { /* ... */ }
 
 ---
 
-## 15. Cross-references
+## Troubleshooting
+
+Symptom → likely cause. First stop when Workflow A's smoke test fails.
+
+| Symptom | Likely cause |
+|---|---|
+| "419 Page Expired" right after login (SPA) | XSRF cookie not sent — missing `withCredentials` or wrong CORS / SANCTUM_STATEFUL_DOMAINS |
+| Logged out on every request (SPA) | `SESSION_DOMAIN` doesn't cover both subdomains — set to `.example.com` |
+| User logged out after deploy | `APP_KEY` rotated or session driver/domain changed between releases — sessions can't decrypt |
+| `auth()->user()` is null in queued job | No HTTP context — pass actor explicitly (§8.1) |
+| 2FA challenge loop | Session lost between login + challenge — check `SESSION_DRIVER` (don't use `array` in prod) |
+| `Hash::needsRehash` always true | Different algorithm/cost between hash creation and check — verify `config/hashing.php` |
+| Token-protected route returns 401 with valid token | Token revoked, expired, or `ability:` middleware mismatch — log `currentAccessToken()` |
+
+Deeper SPA-cookie diagnosis (per-environment matrix, SameSite, reverse proxies): [`references/sanctum_spa_setup.md`](references/sanctum_spa_setup.md).
+
+---
+
+## Reference routing
+
+| Task | Load |
+|---|---|
+| SPA cookie auth setup, domain topology, per-env `.env` templates, 419 debugging, CORS matrix, curl smoke test | [`references/sanctum_spa_setup.md`](references/sanctum_spa_setup.md) |
+| Policy composition, `Gate::before`/`after`, multi-tenant authorization, Spatie Permission, super-admin escape hatches, authorization in jobs/console | [`references/authorization_patterns.md`](references/authorization_patterns.md) |
+
+---
+
+## Cross-references
 
 | Topic | Skill |
 |---|---|
 | OWASP, password hashing internals, 2FA threat model, dep CVEs | `laravel-security` |
 | Eloquent `User` model, FormRequests for login/register | `laravel-backend` |
-| Policy composition, `Gate::before`/`after`, multi-tenant pattern | `references/authorization_patterns.md` (this skill) |
-| Inertia shared `auth.user`, encryptHistory on logout | `laravel-inertia` (§4, §11) |
-| Ziggy filtering of admin routes | `laravel-frontend` (§6) |
+| Inertia shared `auth.user`, encryptHistory on logout | `laravel-inertia` |
+| Wayfinder route generation, Vite wiring | `laravel-frontend` |
 | Pest helpers `actingAs`, `Sanctum::actingAs($user, ['ability'])` | `laravel-qa` |

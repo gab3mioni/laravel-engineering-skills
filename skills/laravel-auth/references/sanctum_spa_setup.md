@@ -359,7 +359,7 @@ If step 4 returns 200 with the user data, SPA mode is working.
 - `laravel-auth` SKILL.md §3 — Sanctum overview and decision tree
 - `laravel-auth` §3.2 — API token mode (the other Sanctum mode)
 - `laravel-auth` §13 — common pitfalls table
-- `laravel-frontend` §6 — Ziggy and route filtering for the SPA
+- `laravel-frontend` — Wayfinder route generation for the SPA
 - `laravel-inertia` §4 — sharing `auth.user` via `HandleInertiaRequests`
 - `laravel-inertia` §11 — `clearHistory()` on logout
 - `laravel-security` — broader CSP/headers context (this doc focuses on Sanctum mechanics)

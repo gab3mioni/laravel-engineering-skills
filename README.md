@@ -41,7 +41,7 @@ All agents inherit the session model — you control Opus/Sonnet/Haiku.
 
 `laravel-backend` · `laravel-frontend` · `laravel-inertia` · `laravel-queues` · `laravel-auth` · `laravel-static-analysis` · `laravel-a11y` · `laravel-qa` · `laravel-security`
 
-Skills are stack-neutral cheat-sheets that agents pull in on demand. `laravel-qa` is universal — every agent that touches code writes, runs, or audits tests against it.
+Skills are procedures and checklists agents follow — workflows with verification steps, decision tables, and anti-pattern greps, loaded on demand. `laravel-qa` is universal — every agent that touches code writes, runs, or audits tests against it.
 
 ## Usage
 

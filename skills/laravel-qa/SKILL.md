@@ -1,6 +1,6 @@
 ---
 name: laravel-qa
-description: QA and testing for Laravel 12 — Pest 3 (expectations, datasets, higher-order, arch tests), feature/unit/integration tests, fakes (Queue, Mail, Event, Http, Storage, Notification, Bus), factories and seeders for tests, RefreshDatabase/DatabaseTransactions, HTTP testing (actingAs, assertJsonPath, assertInertia), Dusk browser tests, coverage and mutation testing, CI integration. Universal — consumed by every agent in the plugin.
+description: QA and testing for Laravel 12 with Pest 3 — TDD workflow, regression tests, test-type and fake-vs-real decisions, HTTP/database/browser testing, arch tests, coverage and mutation. Use when writing any test, when a bug fix needs a regression test, when deciding what to fake vs hit real, when the suite is slow or flaky or fails only in parallel, or when a behavior change is about to land without a test. Universal — consumed by every agent in the plugin.
 ---
 
 # Laravel QA — Tests, factories, fakes
@@ -10,333 +10,171 @@ Pest-first testing for Laravel 12 / PHP 8.3+. Universal skill — every agent th
 ## When to use this skill
 
 - Writing or modifying any test (feature, unit, integration, browser)
-- Designing test strategy (what to mock, what to fake, what to hit real)
-- Setting up test database, factories, seeders for tests
+- A bug fix needs a regression test
+- Deciding what to mock, what to fake, what to hit real
+- The suite is slow, flaky, or fails only in parallel
 - Running coverage or mutation analysis
-- Configuring CI test gates
 
 ## When NOT to use
 
 | Topic | Use instead |
 |---|---|
-| Server-side patterns being tested (Eloquent, Controllers, FormRequests, Policies) | `laravel-backend` |
-| Auth flow being tested (Sanctum, Fortify, guards) | `laravel-auth` |
-| Queue mechanics being tested (Horizon, batching, retries) | `laravel-queues` |
-| Inertia protocol being tested (props, deferred, partial) | `laravel-inertia` |
-| Static analysis output (Pint, Larastan, Rector) | `laravel-static-analysis` |
-| Accessibility checks | `laravel-a11y` |
-| Security regression auditing | `laravel-security` |
+| Server-side patterns being tested (Eloquent, Controllers, FormRequests, Policies) | `laravel-backend` skill |
+| Auth flow being tested (Sanctum, Fortify, guards) | `laravel-auth` skill |
+| Queue mechanics being tested (Horizon, batching, retries) | `laravel-queues` skill |
+| Inertia protocol being tested (props, deferred, partial) | `laravel-inertia` skill |
+| Static analysis output (Pint, Larastan, Rector) and CI gate wiring | `laravel-static-analysis` skill |
+| Accessibility checks | `laravel-a11y` skill |
+| Security regression auditing | `laravel-security` skill |
+| JS component tests (Vitest, Testing Library) | (owned by the `laravel-react` / `laravel-vue` agents) |
+| CI runner infra, containers, pipelines | (owned by the `devops` agent) |
 
 ## Stack assumptions
 
-- **Pest 3+** is the default test runner
-- Laravel 12, PHP 8.3+
+- **Pest 3+** is the default test runner; Laravel 12, PHP 8.3+
 - Test layout: `tests/Feature/`, `tests/Unit/`, `tests/Browser/` (when Dusk present)
 - `tests/Pest.php` is the global config; `tests/TestCase.php` is the base class
-
-For best practices (pyramid, AAA, naming, coverage as signal), strategy (when feature/unit/integration, fakes vs real), and the deep Pest automation guide (datasets, higher-order, arch, mutation, parallel, CI), see:
-- `references/best_practices.md`
-- `references/testing_strategies.md`
-- `references/test_automation.md`
+- `it(...)` and `test(...)` are aliases — match whichever the suite already uses
 
 ---
 
-## 1. Test types — quick decision
+## Workflows
+
+### W1. TDD loop (any behavior change)
+
+1. **Write the failing test first.** Name it after the behavior ("it rejects expired coupons"), not the method under test.
+2. **Confirm it fails for the right reason:**
+   ```bash
+   vendor/bin/pest --dirty --bail
+   ```
+   - Passes immediately → the behavior already exists or the test asserts nothing. Rewrite the test.
+   - Fails with an *error* (exception, missing class) instead of an *assertion failure* → fix the test setup before implementing.
+3. **Implement** the minimal code that satisfies the test.
+4. **Confirm green, including neighbors:**
+   ```bash
+   vendor/bin/pest --dirty
+   ```
+   - Your test fails → back to step 3.
+   - *Other* tests fail → collateral regression; run workflow W3 before touching anything else.
+5. **Format gate:**
+   ```bash
+   vendor/bin/pint --dirty --test
+   ```
+   On failure, apply with `vendor/bin/pint --dirty` and re-run step 4.
+
+⚠️ **Hard gate: a behavior change without a test in the same diff is not done.** No "tests in the next PR".
+
+### W2. Regression test for a bug fix
+
+1. **Reproduce the bug as a failing test** before touching the fix. The test name states the correct behavior, not the ticket:
+   ```bash
+   vendor/bin/pest --filter='rejects expired coupons'
+   ```
+   Can't reproduce → you don't understand the bug yet; stop and investigate, don't fix blind.
+2. **Fix** the code.
+3. **Verify** the new test passes and nothing else broke: `vendor/bin/pest --dirty`.
+4. **If the bug is in billing, auth, or permissions**, mutation-check the fix so the test actually pins the branch:
+   ```bash
+   vendor/bin/pest --mutate --covered-only --bail tests/Feature/CheckoutTest.php
+   ```
+   Survivors on the fixed lines → the regression test is too shallow; strengthen assertions.
+
+### W3. Triage a failing suite
+
+1. **Get the first failure fast:**
+   ```bash
+   vendor/bin/pest --bail
+   ```
+2. **Classify the failure:**
+
+   | Kind | Signal | Action |
+   |---|---|---|
+   | Assertion failure | `Failed asserting that ...` | Real behavior change. Fix the code — or the test, only if the intent legitimately changed. |
+   | Error | Exception, missing table/class | Environment or setup: run `php artisan migrate:fresh --env=testing`, check `.env.testing`, composer autoload. |
+   | Flaky | Passes on re-run with `--filter` | Deterministic cause exists — find it via the flakiness table in `references/best_practices.md` §3. Never mask with `--retry`. |
+
+3. **Re-run only the fixed area** (`--filter=`, `--dirty`, or a path) until green, then the full suite once before declaring done.
+
+---
+
+## Decision tables
+
+### Test type
 
 | Type | Boots Laravel? | Hits DB? | When |
 |---|---|---|---|
 | **Feature** | Yes | Yes | HTTP endpoints, full request flow, multi-class behavior |
 | **Unit** | No | No | Single class, pure logic, no framework |
-| **Integration** | Yes | Yes | Cross-class behavior without HTTP (services, jobs running together) |
+| **Integration** | Yes | Yes | Cross-class behavior without HTTP (services, jobs together) |
 | **Browser** (Dusk) | Yes | Yes | UI flows that depend on JavaScript |
+| **Arch** | No | No | Structural rules (layering, no debug calls) |
 
-When unsure: **start with a Feature test**. Drop to Unit only when speed or isolation justifies. See `references/testing_strategies.md` §1 for full decision rationale.
+When unsure: **start with a Feature test**. Drop to Unit only when speed or isolation justifies. Full rationale in `references/testing_strategies.md` §1.
 
----
+### Fake vs real
 
-## 2. Pest fundamentals
+| Dependency | Decision |
+|---|---|
+| Queue / jobs | `Queue::fake()` / `Bus::fake()` — unless the job's own logic is under test |
+| Mail / Notification | Fake, always — assert sent, never deliver |
+| External HTTP | `Http::fake([...])`, always — real HTTP in tests is a bug |
+| Storage / filesystem | `Storage::fake('disk')` |
+| Events | **Real** unless asserting dispatch; then `Event::fake([Only::class])` so listeners still run |
+| Database | **Real**, via `RefreshDatabase` — do not mock Eloquent |
+| Container services | **Real** — resolve from the container |
+| Non-Laravel SDKs (payment gateway, etc.) | Mockery: `$this->mock(Gateway::class)` |
 
-```php
-use App\Models\{Post, User};
+**Heuristic:** prefer fakes (real Laravel collaborators with an assertion API) over mocks (Mockery doubles). Mocks are for non-Laravel services only.
 
-it('lists published posts', function () {
-    Post::factory()->published()->count(3)->create();
-    Post::factory()->count(2)->create();   // unpublished
-
-    $response = $this->getJson('/api/posts');
-
-    $response->assertOk()->assertJsonCount(3, 'data');
-});
-
-test('post creation requires title', function () {
-    $this->actingAs(User::factory()->create())
-         ->postJson('/api/posts', ['body' => 'no title'])
-         ->assertStatus(422)
-         ->assertJsonValidationErrors(['title']);
-});
-```
-
-`it(...)` and `test(...)` are aliases. Convention: `it` for behavior phrases ("creates a post"), `test` for action verbs ("post creation requires title"). Pick one and stay consistent.
-
-### 2.1 Expectations
-
-```php
-expect($post->title)->toBe('Hello');
-expect($post->is_published)->toBeTrue();
-expect($posts)->toHaveCount(3);
-expect($post->tags)->toContain('php');
-expect(fn () => Post::create([]))->toThrow(QueryException::class);
-```
-
-Higher-order chained:
-
-```php
-expect($user)
-    ->name->toBe('Gabriel')
-    ->email->toBeString()
-    ->is_admin->toBeFalse();
-```
-
-### 2.2 Hooks
-
-```php
-beforeEach(function () {
-    $this->user = User::factory()->create();
-});
-
-it('greets the user', function () {
-    $this->actingAs($this->user)
-         ->getJson('/api/me')
-         ->assertJsonPath('data.name', $this->user->name);
-});
-```
-
-`beforeAll`, `afterEach`, `afterAll` exist but are rare in Laravel — DB state is reset per test via `RefreshDatabase`.
-
-For datasets, custom expectations, architecture tests, and helpers in `tests/Pest.php`, see `references/test_automation.md`.
-
----
-
-## 3. HTTP testing
-
-### 3.1 Methods
-
-```php
-$response = $this->getJson('/api/posts');
-$response = $this->postJson('/api/posts', ['title' => 'X']);
-$response = $this->putJson('/api/posts/1', [/* ... */]);
-$response = $this->patchJson('/api/posts/1', [/* ... */]);
-$response = $this->deleteJson('/api/posts/1');
-
-// Web (HTML, redirects, sessions)
-$response = $this->get('/posts');
-$response = $this->post('/login', [/* ... */]);
-```
-
-### 3.2 Acting as a user
-
-```php
-$this->actingAs($user);                              // default web guard
-$this->actingAs($user, 'sanctum');                   // specific guard
-Sanctum::actingAs($user, ['posts:write']);           // Sanctum with abilities
-```
-
-### 3.3 Asserts
-
-```php
-$response->assertOk();                              // 200
-$response->assertCreated();                         // 201
-$response->assertNoContent();                       // 204
-$response->assertStatus(422);
-$response->assertRedirect('/dashboard');
-$response->assertRedirectToRoute('posts.show', $post);
-
-$response->assertJson(['data' => ['id' => 1]]);     // partial match
-$response->assertJsonPath('data.author.id', $user->id);
-$response->assertJsonStructure(['data' => [['id', 'title']]]);
-$response->assertJsonCount(3, 'data');
-$response->assertJsonValidationErrors(['title']);
-$response->assertJsonMissing(['hidden_field']);
-
-$response->assertSessionHas('status');
-$response->assertSessionHasErrors(['email']);
-```
-
-⚠️ **Anti-pattern:** asserting only on status code (`assertOk()`) for JSON endpoints. Misses content regressions. Always pair with `assertJsonPath` or `assertJsonStructure`.
-
----
-
-## 4. Database testing
-
-### 4.1 Reset strategies
+### DB reset strategy
 
 | Trait | Behavior | When |
 |---|---|---|
-| `RefreshDatabase` | Migrates fresh, wraps each test in a transaction | Most tests — fast, isolated |
-| `DatabaseTransactions` | Wraps each test in a transaction; no migration | DB already seeded; very fast |
-| `DatabaseMigrations` | Migrates fresh per test, no transaction | Testing transactions themselves |
+| `RefreshDatabase` | Migrates fresh once, wraps each test in a transaction | Default for Feature tests |
+| `DatabaseTransactions` | Transaction only, no migration | DB already migrated/seeded |
+| `DatabaseMigrations` | Migrates fresh per test, no transaction | Testing transaction behavior itself |
 
-Apply globally in `tests/Pest.php`:
+Apply globally in `tests/Pest.php`: `uses(RefreshDatabase::class)->in('Feature');`
 
-```php
-uses(RefreshDatabase::class)->in('Feature');
-```
+---
 
-### 4.2 Asserts on DB
+## Core patterns (kept minimal)
 
-```php
-$this->assertDatabaseHas('posts', ['title' => 'Hello']);
-$this->assertDatabaseMissing('posts', ['id' => 999]);
-$this->assertDatabaseCount('posts', 3);
-$this->assertSoftDeleted($post);
-$this->assertModelExists($post);
-$this->assertModelMissing($post);
-```
+### HTTP assertion depth
 
-### 4.3 Factories quick reference
+⚠️ **Anti-pattern:** asserting only the status code (`assertOk()`) on JSON endpoints. It misses content regressions. Always pair with `assertJsonPath(...)` or `assertJsonStructure(...)`.
+
+### Factories — test-specific usage
 
 ```php
-$user  = User::factory()->create();                                // single, persisted
-$users = User::factory()->count(5)->create();                      // many
-$user  = User::factory()->make();                                  // not persisted
-
-$post = Post::factory()->for(User::factory())->create();           // belongsTo
-$user = User::factory()->has(Post::factory()->count(3))->create(); // hasMany
-
-$user = User::factory()->state(['admin' => true])->create();       // ad-hoc state
-$post = Post::factory()->published()->create();                    // named state
-
-Post::factory()->count(3)->recycle($user)->create();               // share parent across tree
-
-// Different values per row
-User::factory()->count(3)->sequence(
-    ['role' => 'admin'],
-    ['role' => 'editor'],
-    ['role' => 'viewer'],
-)->create();
+$user = User::factory()->state(['admin' => true])->create();   // ad-hoc state
+$post = Post::factory()->published()->create();                // named state
+Post::factory()->count(3)->recycle($user)->create();           // share parent across tree
+User::factory()->count(3)->sequence(['role' => 'admin'], ['role' => 'editor'])->create();
 ```
+
+Deep factory design (definitions, relationships, seeders) is owned by the `laravel-backend` skill.
 
 ⚠️ **Anti-pattern:** factories that hit external services (HTTP, S3) in `definition()`. Keep factories pure.
 
----
+### Mail fake bypass
 
-## 5. Fakes
+⚠️ Code that instantiates and sends a Mailable outside the facade chain bypasses `Mail::fake()`. Always send via `Mail::to(...)->send(new WelcomeMail(...))` so the fake intercepts it.
 
-Replace a Laravel facade with an inspector:
+### Inertia responses
 
-```php
-Queue::fake();
-Mail::fake();
-Notification::fake();
-Event::fake();
-Bus::fake();
-Http::fake();
-Storage::fake('s3');
+Assert component name and props with `assertInertia(fn (AssertableInertia $page) => $page->component('Posts/Index')->has('posts.data', 5))`. Deep prop assertions, deferred/partial testing: load the `laravel-inertia` skill (§14).
 
-// ... run code under test ...
+### Browser testing (Dusk)
 
-Queue::assertPushed(ProcessPost::class);
-Queue::assertPushed(ProcessPost::class, fn ($job) => $job->postId === $post->id);
-Queue::assertNotPushed(SomeOtherJob::class);
-Queue::assertCount(1);
+Detect: `composer show laravel/dusk`. Reserve Dusk for flows Feature + Inertia testing cannot reach (drag-and-drop, complex JS state, third-party widgets) — **Dusk is ~10× slower** than a Feature test covering the same route.
 
-Mail::assertSent(WelcomeMail::class, fn ($m) => $m->hasTo($user->email));
-Mail::assertNotSent(WelcomeMail::class);
-Mail::assertQueued(WelcomeMail::class);
-
-Notification::assertSentTo($user, WelcomeNotification::class);
-Notification::assertNothingSent();
-
-Event::assertDispatched(PostPublished::class);
-Event::assertDispatched(PostPublished::class, 1);   // exactly once
-Event::assertNotDispatched(PostDeleted::class);
-
-Bus::assertDispatched(ProcessPost::class);
-Bus::assertChained([JobA::class, JobB::class]);
-Bus::assertBatched(fn (PendingBatch $b) => $b->jobs->count() === 5);
-
-Http::fake([
-    'api.example.com/*' => Http::response(['ok' => true], 200),
-    '*'                 => Http::response('Not found', 404),
-]);
-Http::assertSent(fn (Request $r) => $r->url() === 'https://api.example.com/users');
-
-Storage::disk('s3')->assertExists("uploads/{$file->id}.jpg");
-Storage::disk('s3')->assertMissing('uploads/old.jpg');
-```
-
-⚠️ **Anti-pattern:** code that uses `new Mailable(...)` directly bypasses `Mail::fake()`. Always send via `Mail::to(...)->send(...)`.
-
----
-
-## 6. Mocking (Mockery)
-
-For non-facade dependencies:
-
-```php
-$gateway = $this->mock(PaymentGateway::class);
-$gateway->shouldReceive('charge')->once()->andReturn(true);
-
-// Pest helpers
-$mock    = $this->mock(PaymentGateway::class);
-$spy     = $this->spy(PaymentGateway::class);
-$partial = $this->partialMock(PaymentGateway::class);
-```
-
-**Heuristic:** prefer fakes (real Laravel collaborators with assertion API) over mocks (Mockery doubles). Mocks are for non-Laravel services.
-
----
-
-## 7. Inertia testing
-
-```php
-$this->actingAs($user)
-     ->get('/posts')
-     ->assertInertia(fn (AssertableInertia $page) => $page
-         ->component('Posts/Index')
-         ->has('posts.data', 5)
-         ->where('posts.data.0.title', 'First post')
-         ->missing('debug')
-     );
-```
-
-Asserts the Inertia component name, props shape, and absence of leaked data. Deeper Inertia-specific helpers in `laravel-inertia`.
-
----
-
-## 8. Browser testing (Dusk)
-
-Detect: `composer show laravel/dusk`. Dusk drives a real browser via ChromeDriver — slow, but the only path to JS-driven flows.
-
-```php
-// tests/Browser/LoginTest.php
-$this->browse(function (Browser $browser) use ($user) {
-    $browser->visit('/login')
-            ->type('email', $user->email)
-            ->type('password', 'password')
-            ->press('Log In')
-            ->assertPathIs('/dashboard')
-            ->assertSee("Welcome, {$user->name}");
-});
-```
-
-**When Dusk:** UI flows that Feature + Inertia testing cannot reach (drag-and-drop, complex JS state, third-party widgets). Default to Feature testing for everything else — Dusk is ~10× slower.
-
----
-
-## 9. Architecture tests
-
-Pest's `arch()` enforces structural rules across the codebase, run as part of the suite:
+### Architecture tests
 
 ```php
 arch('controllers do not access models directly')
     ->expect('App\Http\Controllers')
     ->not->toUse(['App\Models']);
-
-arch('actions are final and have handle method')
-    ->expect('App\Actions')
-    ->toBeFinal()
-    ->toHaveMethod('handle');
 
 arch('no debug calls in production code')
     ->expect(['dd', 'dump', 'var_dump', 'die', 'print_r', 'ray'])
@@ -344,119 +182,74 @@ arch('no debug calls in production code')
 
 arch()->preset()->laravel();    // built-in Laravel rules
 arch()->preset()->security();   // forbids eval, exec, system, unserialize
-arch()->preset()->php();        // PHP-level safety rules
 ```
 
----
+Run them as part of the normal suite so structural drift fails CI.
 
-## 10. Coverage
+### Coverage and mutation
 
 ```bash
-vendor/bin/pest --coverage                       # text in terminal
-vendor/bin/pest --coverage --min=80              # fail if below 80%
-vendor/bin/pest --coverage-html=coverage         # HTML report
-vendor/bin/pest --coverage-clover=coverage.xml   # for Codecov / Sonar
+vendor/bin/pest --coverage --min=80              # floor, not target
+vendor/bin/pest --mutate --covered-only          # mutation on covered code
 ```
 
-Requires Xdebug or PCOV. PCOV is faster (coverage-only).
+⚠️ Coverage is a **floor and a signal**, never a goal — 100% with shallow assertions is worse than 70% with meaningful ones. **Mutation strategy:** target critical business logic (billing, auth, permissions, scheduling); run nightly or per-release, not per-PR — too slow.
 
-⚠️ Coverage is a **signal**, not a goal. 100% with shallow assertions is worse than 70% with meaningful ones. Pair with mutation testing for branch-quality signal.
+CI wiring (which gates block merge, cadence, YAML): load the `laravel-static-analysis` skill.
 
 ---
 
-## 11. Mutation testing (Pest 3+)
+## Rules & anti-patterns
 
-```bash
-vendor/bin/pest --mutate                    # full mutation run (slow)
-vendor/bin/pest --mutate --bail             # stop at first survivor
-vendor/bin/pest --mutate --covered-only     # only mutate covered code
-vendor/bin/pest --mutate --min=80           # fail if score below 80%
-```
-
-**Strategy:** target critical business logic (billing, auth, permissions, scheduling). Run nightly or per-release in CI, not per-PR — too slow.
-
----
-
-## 12. Parallel testing
-
-```bash
-vendor/bin/pest --parallel              # auto-detect cores
-vendor/bin/pest --parallel --processes=4
-```
-
-Each process gets its own DB (`testing_1`, `testing_2`, …). Speeds the suite ~3-4× on 8 cores.
-
-⚠️ Tests sharing state (filesystem writes, external services without faking) break under parallel. Audit isolation first.
+| Smell | Why | Detect |
+|---|---|---|
+| Test hits real HTTP / external service | Slow, flaky | `grep -rLn "Http::fake" tests/Feature` on tests using `Http::` |
+| Factory calls external service in `definition()` | Slows every test using it | `grep -rn "Http::\|Storage::disk" database/factories/` |
+| Mailable sent outside the facade | Bypasses `Mail::fake()` | `grep -rn "(new .*Mail" app/ \| grep -v "Mail::"` |
+| Mocking what should be faked (Queue, Mail, Event) | Loses Laravel's assertion API | `grep -rn "shouldReceive" tests/ \| grep -iE "queue\|mail\|event"` |
+| Only `assertOk()` on JSON endpoints | Misses content regressions | `grep -rn "assertOk();$" tests/` |
+| Missing `RefreshDatabase` on Feature tests | State bleeds across tests and runs | `grep -n "RefreshDatabase" tests/Pest.php` (must exist) |
+| `sleep()` in tests | Slow and still racy | `grep -rn "sleep(" tests/` — use `Carbon::setTestNow(...)` |
+| `markTestSkipped` / `->skip()` older than a sprint | Compounds debt | `grep -rn "markTestSkipped\|->skip(" tests/` |
+| `--retry` in CI masking flakiness | Hides the root cause | `grep -rn "retry" .github/workflows/` |
+| Coverage as a hard target (chasing 100%) | Drives shallow assertions | `--min` above ~85 in CI config |
+| Browser test where Feature would suffice | 10× slower for no gain | Dusk test with no JS interaction steps |
+| Arch rules not run in CI | Structural drift goes undetected | Arch tests in an excluded group |
 
 ---
 
-## 13. Filtering for fast local TDD
+## Troubleshooting
 
-```bash
-vendor/bin/pest --filter=PostTest               # by file/class name
-vendor/bin/pest --filter='it creates'           # by test name
-vendor/bin/pest --group=critical                # by group annotation
-vendor/bin/pest tests/Feature/Auth              # by path
-vendor/bin/pest --bail                          # stop at first failure
-vendor/bin/pest --retry                         # retry failed once
-vendor/bin/pest --dirty                         # only tests touching changed files (gold for TDD)
-```
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Suite fails randomly (flaky) | Time, random data, order, or unfaked external | Match the source against the flakiness table in `references/best_practices.md` §3; pin with `Carbon::setTestNow(...)`, fake externals. Fix or delete within the sprint. |
+| Tests pass solo, fail in parallel | Shared state: same file paths, static properties, hardcoded DB names | `Storage::fake()` per test; reset statics in `beforeEach`; let Pest's per-process DBs (`testing_1`, `testing_2`, …) work — never hardcode the test DB name. Setup: `references/test_automation.md` §8. |
+| `RefreshDatabase` suite is slow | Long migration chain replayed on boot; or `DatabaseMigrations` used by mistake | `php artisan schema:dump` to squash migrations; confirm `RefreshDatabase` (transaction per test), not `DatabaseMigrations` (migration per test). |
+| Factory unique collisions (`UniqueConstraintViolation`, `unique()` overflow) | Fixed values under `count()`, or `fake()->unique()` pool exhausted | Use `sequence(...)` for per-row values; `recycle($parent)` instead of re-creating parents; widen the faker pool or derive uniqueness from a sequence index. |
+| Tests fail only in CI | Missing `.env.testing` values, missing PHP extension (PCOV/Xdebug), MySQL service not ready | Diff local vs CI env; coverage needs PCOV or Xdebug installed. |
 
 ---
 
-## 14. CI integration
+## Reference routing
 
-Recommended GitHub Actions block:
-
-```yaml
-- name: Pint
-  run: vendor/bin/pint --test
-
-- name: Larastan
-  run: vendor/bin/phpstan analyse --memory-limit=2G
-
-- name: Pest
-  run: vendor/bin/pest --parallel --coverage --min=80
-```
-
-Run on every PR. Block merge on test failure, coverage drop below floor, or static analysis failure. Run mutation testing nightly or per-release.
-
-For full GitHub Actions YAML with PHP version matrix, MySQL service, Composer cache, and PCOV setup, see `references/test_automation.md` §10.
-
----
-
-## 15. Anti-patterns — consolidated checklist
-
-| Smell | Why |
+| Task | Load |
 |---|---|
-| Test that hits real HTTP / external service | Slow, flaky; use `Http::fake()` |
-| Factory hitting external service in `definition()` | Slows every test using it |
-| Test depending on prior test's state | Order-dependent; isolation broken |
-| `actingAs` without `RefreshDatabase` | Stale users carry across tests |
-| `Mail::to(...)->send(new ...)` outside facade | Bypasses `Mail::fake()` |
-| Mocking what should be faked (Queue, Mail, Event) | Misuses Mockery; lose Laravel's assertion API |
-| Asserting only `assertOk()` on JSON endpoints | Misses content regressions |
-| Test name that mirrors the method name | Hides intent — describe behavior |
-| Test with > 5 setup lines | Sign of God class; refactor |
-| Missing `RefreshDatabase` on Feature test | Pollutes DB across runs |
-| Coverage as a hard target, not a signal | Drives shallow assertions |
-| `markTestSkipped` left for > 1 sprint | Compounds debt; fix or delete |
-| Architecture rules not run in CI | Drift goes undetected |
-| Browser test where Feature would suffice | 10× slower for no gain |
-| Sleeping in tests | Use `Carbon::setTestNow(...)` instead |
-| Single test asserting many unrelated behaviors | Hard to debug failures; split |
-| `--retry` masking flakiness | Hides root cause; investigate |
+| Designing a suite, arguing Feature vs Unit vs integration boundaries | `references/testing_strategies.md` |
+| Pyramid/coverage/flakiness stances (opinionated positions only — file is deliberately short) | `references/best_practices.md` |
+| Datasets, custom expectations, parallel setup, mutation setup, full CI YAML | `references/test_automation.md` |
 
 ---
 
-## 16. Cross-references
+## Cross-references
 
-| Topic | Skill |
+| Topic | Where |
 |---|---|
-| Domain logic being tested (Eloquent, Controllers, FormRequests, Policies) | `laravel-backend` |
-| Auth flow being tested (Sanctum, Fortify, guards) | `laravel-auth` |
-| Queue/job test patterns (`Bus::fake`, `Queue::fake`, batching, chains) | `laravel-queues` |
-| Inertia-specific assertions (`assertInertia` deep) | `laravel-inertia` |
-| Pint, Larastan, Rector in CI gates | `laravel-static-analysis` |
-| Browser a11y testing (axe via Dusk) | `laravel-a11y` |
-| Security regression tests | `laravel-security` |
+| Domain logic being tested (Eloquent, Controllers, FormRequests, Policies) | `laravel-backend` skill |
+| Auth flow being tested (Sanctum, Fortify, guards) | `laravel-auth` skill |
+| Queue/job test patterns (`Bus::fake`, `Queue::fake`, batching, chains) | `laravel-queues` skill |
+| Inertia-specific assertions (`assertInertia` deep) | `laravel-inertia` skill |
+| Pint, Larastan, Rector, CI gates | `laravel-static-analysis` skill |
+| Browser a11y testing (axe via Dusk) | `laravel-a11y` skill |
+| Security regression tests | `laravel-security` skill |
+| Vitest / Testing Library for JS components | (owned by the `laravel-react` / `laravel-vue` agents) |
+| CI infrastructure, runners, containers | (owned by the `devops` agent) |

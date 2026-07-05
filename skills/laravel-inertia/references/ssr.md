@@ -60,8 +60,6 @@ import { createInertiaApp } from '@inertiajs/react';
 import createServer from '@inertiajs/react/server';
 import ReactDOMServer from 'react-dom/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { route as ziggyRoute, RouteName } from 'ziggy-js';
-import { Ziggy } from './ziggy';
 
 const port = 13714;
 
@@ -72,15 +70,7 @@ createServer((page) =>
     title: (title) => `${title} · MyApp`,
     resolve: (name) =>
       resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx')),
-    setup: ({ App, props }) => {
-      // Make Ziggy available during SSR
-      (global as any).route = (name: RouteName, params?: any, absolute?: boolean) =>
-        ziggyRoute(name, params, absolute, {
-          ...Ziggy,
-          location: new URL(props.initialPage.url, Ziggy.url),
-        });
-      return <App {...props} />;
-    },
+    setup: ({ App, props }) => <App {...props} />,
   }),
   port,
 );
@@ -93,8 +83,6 @@ import createServer from '@inertiajs/vue3/server';
 import { renderToString } from 'vue/server-renderer';
 import { createSSRApp, h } from 'vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { ZiggyVue } from 'ziggy-js/vue';
-import { Ziggy } from './ziggy';
 
 const port = 13714;
 
@@ -106,17 +94,14 @@ createServer((page) =>
     resolve: (name) =>
       resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ App, props, plugin }) {
-      return createSSRApp({ render: () => h(App, props) })
-        .use(plugin)
-        .use(ZiggyVue, {
-          ...Ziggy,
-          location: new URL(props.initialPage.url, Ziggy.url),
-        });
+      return createSSRApp({ render: () => h(App, props) }).use(plugin);
     },
   }),
   port,
 );
 ```
+
+Route helpers need no SSR wiring: Wayfinder-generated functions are plain module imports and render identically in Node and the browser (they emit relative URLs, so no location context is required).
 
 ### 3.2 `vite.config.js`
 
@@ -382,7 +367,7 @@ Then `php artisan config:clear`. The PHP adapter skips the SSR call; pages rende
 | `ReferenceError: window is not defined` in SSR logs | Component touches `window` at render | Move to lifecycle hook (§7) |
 | Pages render blank in source but appear in browser | SSR call timed out or returned 500 | Check SSR logs; check Vite SSR build for errors |
 | Different content in source vs after hydration | Hydration mismatch (§7) | Diagnose root cause; don't suppress with `suppressHydrationWarning` unless 100% benign |
-| `route is not defined` in SSR logs | Ziggy not wired in `ssr.tsx`/`ssr.ts` | See §3.1 — set `global.route` |
+| `route is not defined` in SSR logs | Leftover global-helper usage (pre-Wayfinder code) | Replace with Wayfinder imports — no SSR wiring needed (§3.1) |
 | Memory grows linearly | Component-level leak or no recycling | Cap memory + recycle (§9) |
 
 ## 13. Cross-references
