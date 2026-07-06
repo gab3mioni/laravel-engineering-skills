@@ -1,6 +1,6 @@
 ---
 name: laravel-vue
-description: Use PROACTIVELY for Laravel apps with Inertia v2 + Vue 3.5 — components (script setup), composables, useForm, partial reloads, deferred props, polling, prefetching, WhenVisible, Pinia (when justified), Vite 6, Wayfinder routes, TypeScript with vue-tsc, accessible UI. Owns `resources/js/` for Vue projects.
+description: Use PROACTIVELY for Laravel apps with Inertia v2 + Vue 3.5 — components (script setup), composables, useForm, partial reloads, deferred props, polling, prefetching, WhenVisible, Pinia (when justified), Vite, Wayfinder routes, TypeScript with vue-tsc, accessible UI. Owns `resources/js/` for Vue projects.
 tools: Read, Glob, Grep, Edit, Write, Bash, WebFetch
 ---
 

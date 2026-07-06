@@ -272,6 +272,8 @@ POST /user/confirmed-two-factor-authentication { code: '123456' }
 
 Recovery codes are single-use; regenerate after any used. Threat-model details (TOTP drift, brute-force on codes) live in `laravel-security`.
 
+Full endpoint lifecycle (enable → QR → confirm → recovery codes → login challenge), SPA integration without Blade views, and the 2FA troubleshooting matrix: [`references/fortify_2fa.md`](references/fortify_2fa.md).
+
 ---
 
 ## 5. Breeze
@@ -285,7 +287,8 @@ Use for greenfield apps or as a reference implementation of Sanctum SPA + Fortif
 
 Full OAuth2 server: issues tokens to **third-party** clients via standard grant types (authorization code, client credentials).
 **Use only when** you are an identity provider to other apps. For first-party SPAs, Sanctum SPA mode is the right answer (§1 anti-pattern).
-Install: `composer require laravel/passport && php artisan passport:install`. Passport's surface area is too large for this skill — defer to the official docs.
+Install: `php artisan install:api --passport`. Passport's surface area is too large for this skill — defer to the official docs.
+For the Sanctum-vs-Passport decision matrix, current grant-type status (password grant deprecated), and token ability design, see [`references/token_mode_decision.md`](references/token_mode_decision.md).
 
 ---
 
@@ -472,6 +475,8 @@ Deeper SPA-cookie diagnosis (per-environment matrix, SameSite, reverse proxies):
 |---|---|
 | SPA cookie auth setup, domain topology, per-env `.env` templates, 419 debugging, CORS matrix, curl smoke test | [`references/sanctum_spa_setup.md`](references/sanctum_spa_setup.md) |
 | Policy composition, `Gate::before`/`after`, multi-tenant authorization, Spatie Permission, super-admin escape hatches, authorization in jobs/console | [`references/authorization_patterns.md`](references/authorization_patterns.md) |
+| Wiring or debugging Fortify 2FA, building the SPA 2FA flow (enable → confirm → challenge), 423/404 challenge symptoms, recovery codes | [`references/fortify_2fa.md`](references/fortify_2fa.md) |
+| Choosing Sanctum tokens vs Passport, designing token abilities, expiration/rotation/revocation, Passport 13 grant status | [`references/token_mode_decision.md`](references/token_mode_decision.md) |
 
 ---
 

@@ -278,6 +278,7 @@ Tools: browser devtools (Inspect → Accessibility tab); axe; pa11y.
 | Need | Reference |
 |---|---|
 | axe-core / jest-axe / vitest-axe / cypress-axe / pa11y install + config, lint plugins, CI wiring | `references/a11y_testing_setup.md` |
+| Building or auditing a modal, tabs, accordion, combobox, or action menu — APG role contracts, full keyboard maps, focus behavior | `references/accessible_widgets.md` |
 
 ---
 

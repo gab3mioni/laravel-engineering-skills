@@ -486,10 +486,11 @@ Work through the "Diagnose a stuck or failing queue" workflow first; this table 
 
 ## Reference routing
 
-Operational deep-dives live in [`references/horizon_ops.md`](references/horizon_ops.md). Route by task:
+Deep-dives live in `references/`. Route by task:
 
 | Need | Reference |
 |---|---|
+| Batches/chains failure semantics, `failed()` traps, `ShouldBeUnique` lifecycle, release-vs-fail attempt accounting, replay recipes | [`references/job_design_and_failure_handling.md`](references/job_design_and_failure_handling.md) |
 | Balance-strategy scenario tables (`simple` / `auto` / `false`) | `references/horizon_ops.md` §4 |
 | Autoscaling calibration (`time` vs `size`) | `references/horizon_ops.md` §5 |
 | Per-workload worker sizing matrix | `references/horizon_ops.md` §6 |

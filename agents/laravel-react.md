@@ -1,6 +1,6 @@
 ---
 name: laravel-react
-description: Use PROACTIVELY for Laravel apps with Inertia v2 + React 19 — components, hooks, useForm, partial reloads, deferred props, polling, prefetching, WhenVisible, TanStack Query (when justified), Vite 6, TypeScript, Wayfinder-typed routes, accessible UI. Owns `resources/js/` for React projects.
+description: Use PROACTIVELY for Laravel apps with Inertia v2 + React 19 — components, hooks, useForm, partial reloads, deferred props, polling, prefetching, WhenVisible, TanStack Query (when justified), Vite, TypeScript, Wayfinder-typed routes, accessible UI. Owns `resources/js/` for React projects.
 tools: Read, Glob, Grep, Edit, Write, Bash, WebFetch
 ---
 

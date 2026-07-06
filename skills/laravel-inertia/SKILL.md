@@ -34,7 +34,7 @@ When NOT to use:
 
 - Laravel 12 with `inertiajs/inertia-laravel` v2.x
 - `@inertiajs/react` v2.x or `@inertiajs/vue3` v2.x on the client
-- Vite 6 + Wayfinder for client-side routes (wiring covered in `laravel-frontend`)
+- Vite + Wayfinder for client-side routes (wiring covered in `laravel-frontend`)
 - SPA mode by default; SSR opt-in via `inertia:start-ssr`
 
 ---
@@ -427,6 +427,7 @@ php artisan inertia:start-ssr        # dev only — supervise via systemd/superv
 | Need | Read |
 |---|---|
 | SSR setup, Vite SSR build config, hydration-mismatch debugging, deploy ordering, supervisor templates (systemd / supervisord / Docker) for the SSR server | [`references/ssr.md`](references/ssr.md) |
+| useForm internals (`transform`, `defaults`, `errorBag`), file uploads (PUT `_method` spoof, `forceFormData`, progress), Precognition live validation | [`references/forms_and_uploads.md`](references/forms_and_uploads.md) |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: laravel-frontend
-description: Client-side wiring for Laravel 12 — Vite 6 (laravel-vite-plugin, dev server, HMR, manifest), resources/js layout, Laravel Wayfinder (typed named routes/actions on the client), public env vars (VITE_*), code splitting, TypeScript posture, build artifacts, CSP-friendly bundling. Use when editing vite.config, wiring or regenerating Wayfinder routes, laying out resources/js, or debugging symptoms like "HMR not reloading", "manifest not found", "Vite dev server 404", or "asset 404 after deploy". Stack-neutral, consumed by the laravel-react, laravel-vue, and code-review agents.
+description: Client-side wiring for Laravel 12 — Vite (laravel-vite-plugin, dev server, HMR, manifest), resources/js layout, Laravel Wayfinder (typed named routes/actions on the client), public env vars (VITE_*), code splitting, TypeScript posture, build artifacts, CSP-friendly bundling. Use when editing vite.config, wiring or regenerating Wayfinder routes, laying out resources/js, or debugging symptoms like "HMR not reloading", "manifest not found", "Vite dev server 404", or "asset 404 after deploy". Stack-neutral, consumed by the laravel-react, laravel-vue, and code-review agents.
 ---
 
 # Laravel Frontend — Vite, Wayfinder, asset wiring
@@ -30,7 +30,7 @@ The plumbing between Laravel and the client bundle. Stack-neutral — covers Vit
 
 ## Stack assumptions
 
-- Laravel 12 with `laravel-vite-plugin` v1.x (Vite 6)
+- Laravel 12 with `laravel-vite-plugin` 2.x (Vite 7) or 3.x (Vite 8) — version pairing table in `references/vite_advanced.md`
 - Node 20+ (LTS); npm or pnpm
 - TypeScript by default in greenfield (`.tsx` / `.ts`); plain JS still supported
 - `laravel/wayfinder` for typed named routes/actions on the client (the default in the Laravel 12 starter kits)
@@ -320,6 +320,7 @@ For strict CSP:
 | Need | Load |
 |---|---|
 | Full `vite.config.js` (React and Vue variants), app entry files, Blade shell, `tsconfig.json` | `references/vite_boilerplate.md` |
+| Manual chunking, Docker/HTTPS dev server, Wayfinder build integration, slow builds, Vite version notes, SSR build config | `references/vite_advanced.md` |
 
 ---
 

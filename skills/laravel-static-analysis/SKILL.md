@@ -429,6 +429,7 @@ jobs:
 | Need | Reference |
 |---|---|
 | Level meanings, baseline mechanics, generics annotations, false-positive diagnosis | [`references/larastan_levels_and_baseline.md`](references/larastan_levels_and_baseline.md) |
+| Choosing/ordering Rector sets, rector-laravel rules, brownfield progression | [`references/rector_laravel.md`](references/rector_laravel.md) |
 
 ---
 
