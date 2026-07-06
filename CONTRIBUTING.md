@@ -18,9 +18,13 @@ agents/
   devops.md
   code-review.md
   security.md
+  qa.md
+  db-performance.md
+scripts/
+  detect-stack.sh              # shared stack detection (HAS_* flags) used by every agent
 skills/
   <skill>/
-    SKILL.md                   # stack-neutral cheat-sheet (idiomatic Laravel 12)
+    SKILL.md                   # active procedures + decision tables (idiomatic Laravel 12)
     references/                # deep-dives loaded on demand
     scripts/                   # Python helpers (stdlib only, ≥ 3.11)
 LICENSE
@@ -50,7 +54,9 @@ CONTRIBUTING.md
    Body in Markdown.
    ```
 
-2. Keep `SKILL.md` as a **stack-neutral cheat-sheet**. When a section grows past ~150 lines, extract it to `references/<topic>.md` and link to it from `SKILL.md`.
+2. Follow the **active template** — sections in this order: When to use / When NOT to use → Stack assumptions → **Workflows** (numbered procedures, each step with a verification command) → **Decision tables** → knowledge sections (corrective/opinionated content only — no API catalogs the model already knows) → **Rules & anti-patterns** (every row with a detection grep) → **Troubleshooting** (symptom → cause → fix) → **Reference routing** (task/symptom → which reference to load) → Cross-references. When a section grows past ~150 lines, extract it to `references/<topic>.md` and route to it.
+
+   Two hard rules: never point to another skill's file by path (point by skill name — relative paths only resolve inside the skill's own folder), and label `laravel-react`/`laravel-vue`/`devops` and other agents as **agents** in routing tables (they are not loadable skills).
 
 3. Helper scripts go under `scripts/` and must use Python stdlib only.
 
@@ -80,15 +86,16 @@ CONTRIBUTING.md
 
 | Skill | Consumed by |
 |---|---|
-| `laravel-backend` | `backend`, `security`, `code-review` |
+| `laravel-backend` | `backend`, `security`, `code-review`, `db-performance`, `qa` |
 | `laravel-frontend` | `laravel-react`, `laravel-vue`, `code-review` |
-| `laravel-inertia` | `laravel-react`, `laravel-vue`, `code-review` |
-| `laravel-queues` | `backend`, `devops`, `code-review` |
-| `laravel-auth` | `security`, `backend`, `code-review` |
+| `laravel-inertia` | `laravel-react`, `laravel-vue`, `code-review`, `qa` |
+| `laravel-queues` | `backend`, `devops`, `code-review`, `db-performance` |
+| `laravel-auth` | `security`, `backend`, `code-review`, `qa` |
 | `laravel-static-analysis` | `backend`, `code-review` |
 | `laravel-a11y` | `laravel-react`, `laravel-vue`, `code-review` |
-| `laravel-qa` | every agent |
+| `laravel-qa` | every agent; `qa` follows its workflows as procedure |
 | `laravel-security` | `security`, `code-review`, `backend` |
+| `laravel-deploy` | `devops` |
 
 `code-review` is universal and consumes every skill — review crosses every code domain. `laravel-qa` is universal in the other direction — every agent that writes, runs, or audits code touches it.
 
@@ -122,11 +129,9 @@ Reload after edits with `/reload-plugins` (or restart the Claude Code session).
 | Component | State |
 |---|---|
 | Plugin scaffolding (manifest, dirs) | done |
-| `laravel-backend` skill + 7 references | done |
-| `laravel-qa` skill + 3 references | done |
-| `laravel-security` skill + 3 references | done |
-| `laravel-inertia`, `laravel-frontend`, `laravel-auth`, `laravel-queues`, `laravel-static-analysis`, `laravel-a11y` skills | done (no references yet — extract from `SKILL.md` when sections grow past ~150 lines) |
-| All 6 agent prompts (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`) | done |
+| 10 skills on the active template (workflows + decision tables + reference routing) | done |
+| 8 agent prompts (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`, `qa`, `db-performance`) | done |
+| Shared stack detection (`scripts/detect-stack.sh`) | done |
 
 ## License
 

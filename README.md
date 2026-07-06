@@ -29,19 +29,23 @@ git clone https://github.com/gab3mioni/laravel-claude-code-skills
 ### Agents
 
 - **`backend`** — Eloquent, controllers, FormRequests, services, jobs, migrations, API design.
-- **`laravel-react`** — Inertia v2 + React 19 (hooks, `useForm`, partial reloads, deferred props, Vite 6).
-- **`laravel-vue`** — Inertia v2 + Vue 3.5 (composables, `useForm`, partial reloads, Pinia, Vite 6).
+- **`laravel-react`** — Inertia v2 + React 19 (hooks, `useForm`, partial reloads, deferred props, Wayfinder routes).
+- **`laravel-vue`** — Inertia v2 + Vue 3.5 (composables, `useForm`, partial reloads, Pinia, Wayfinder routes).
 - **`devops`** — Deploy, Docker, CI/CD, Octane, Horizon, scheduler, env management.
 - **`code-review`** — Read-only PR/diff/branch review with a Laravel-aware checklist.
-- **`security`** — OWASP audit and canonical fixes (CSRF, mass assignment, vulnerable deps).
+- **`security`** — OWASP Top 10:2025 audit and canonical fixes (CSRF, mass assignment, vulnerable deps).
+- **`qa`** — Writes the tests other agents owe: Pest feature/unit tests, factories, fakes, Inertia assertions. Owns `tests/` and `database/factories/`.
+- **`db-performance`** — Read-only diagnostician: hunts N+1s, audits indexes with EXPLAIN, picks chunk/cursor strategies; proposes fixes for `backend` to apply.
 
 All agents inherit the session model — you control Opus/Sonnet/Haiku.
 
 ### Skills
 
-`laravel-backend` · `laravel-frontend` · `laravel-inertia` · `laravel-queues` · `laravel-auth` · `laravel-static-analysis` · `laravel-a11y` · `laravel-qa` · `laravel-security`
+`laravel-backend` · `laravel-frontend` · `laravel-inertia` · `laravel-queues` · `laravel-auth` · `laravel-static-analysis` · `laravel-a11y` · `laravel-qa` · `laravel-security` · `laravel-deploy`
 
 Skills are procedures and checklists agents follow — workflows with verification steps, decision tables, and anti-pattern greps, loaded on demand. `laravel-qa` is universal — every agent that touches code writes, runs, or audits tests against it.
+
+**Scope:** the plugin targets the Inertia stack (React/Vue SPAs) with Laravel Wayfinder for client-side routes. Livewire and Filament are out of scope.
 
 ## Usage
 
