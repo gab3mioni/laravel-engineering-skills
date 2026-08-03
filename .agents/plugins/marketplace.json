@@ -1,0 +1,20 @@
+{
+  "name": "laravel-claude-code-skills",
+  "interface": {
+    "displayName": "Laravel Claude Code Skills"
+  },
+  "plugins": [
+    {
+      "name": "laravel-claude-code-skills",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

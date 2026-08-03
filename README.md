@@ -1,8 +1,10 @@
-# laravel-claudecode-toolkit
+# Laravel Claude Code Skills
 
-Opinionated [Claude Code](https://claude.com/claude-code) plugin for the **Laravel 12** ecosystem. Bundles specialized agents and skills so Claude writes idiomatic, type-safe, well-tested Laravel  backend, frontend (Inertia + React/Vue), DevOps, code review, and security, without you having to spell out conventions every session.
+Opinionated plugin for the **Laravel 12** ecosystem, compatible with both [Claude Code](https://claude.com/claude-code) and [Codex](https://developers.openai.com/codex/). It bundles reusable skills for idiomatic, type-safe, well-tested Laravel backend, frontend (Inertia + React/Vue), DevOps, code review, and security. Claude Code also receives the specialized subagents included in `agents/`.
 
 ## Installation
+
+### Claude Code
 
 In Claude Code:
 
@@ -13,11 +15,22 @@ In Claude Code:
 
 The first command registers this repo as a marketplace; the second installs the plugin from it. The `@laravel-claude-code-skills` suffix is the marketplace identifier (matches the GitHub repo name).
 
-For local development setup, see [CONTRIBUTING.md](./CONTRIBUTING.md#local-testing).
+### Codex
+
+Register the GitHub repository as a marketplace, then install the plugin:
+
+```bash
+codex plugin marketplace add gab3mioni/laravel-claude-code-skills
+codex plugin add laravel-claude-code-skills@laravel-claude-code-skills
+```
+
+Alternatively, run `codex`, enter `/plugins`, select the `laravel-claude-code-skills` marketplace, and install the plugin. Start a new Codex session after installation so the bundled skills are loaded.
+
+For local development setup on either host, see [CONTRIBUTING.md](./CONTRIBUTING.md#local-testing).
 
 ## What's included
 
-### Agents
+### Claude Code agents
 
 - **`backend`** — Eloquent, controllers, FormRequests, services, jobs, migrations, API design.
 - **`laravel-react`** — Inertia v2 + React 19 (hooks, `useForm`, partial reloads, deferred props, Wayfinder routes).
@@ -28,7 +41,7 @@ For local development setup, see [CONTRIBUTING.md](./CONTRIBUTING.md#local-testi
 - **`qa`** — Writes the tests other agents owe: Pest feature/unit tests, factories, fakes, Inertia assertions. Owns `tests/` and `database/factories/`.
 - **`db-performance`** — Read-only diagnostician: hunts N+1s, audits indexes with EXPLAIN, picks chunk/cursor strategies; proposes fixes for `backend` to apply.
 
-All agents inherit the session model — you control Opus/Sonnet/Haiku.
+All agents inherit the Claude Code session model. Codex consumes the shared skills directly; Claude-specific agent definitions are not loaded by Codex.
 
 ### Skills
 
@@ -40,13 +53,20 @@ Skills are procedures and checklists agents follow — workflows with verificati
 
 ## Usage
 
-Most of the time you don't need to do anything — agents activate proactively based on context (editing a controller routes you to `backend`; reviewing a diff routes you to `code-review`).
+Both hosts can select skills automatically from the task context. Claude Code can also activate its specialized agents proactively (editing a controller routes you to `backend`; reviewing a diff routes you to `code-review`).
 
-To invoke explicitly:
+To invoke a Claude Code agent explicitly:
 
 ```text
 @backend create a FormRequest for the order checkout endpoint
 @code-review audit the current branch
+```
+
+To invoke a skill explicitly in Codex, mention it with `$`:
+
+```text
+$laravel-backend create a FormRequest for the order checkout endpoint
+$laravel-security audit the current branch
 ```
 
 ## Contributing

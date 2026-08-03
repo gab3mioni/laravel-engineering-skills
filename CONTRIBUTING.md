@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in `laravel-claudecode-toolkit`. This document covers the repo layout, how to add an agent or skill, and the conventions the project follows.
+Thanks for your interest in `laravel-claudecode-toolkit`. This document covers the repo layout, how to add an agent or skill, and the conventions the project follows across Claude Code and Codex.
 
 ## Language
 
@@ -10,7 +10,12 @@ All committed content is **English** — README, this file, `SKILL.md`, agent pr
 
 ```
 .claude-plugin/
-  plugin.json                  # plugin manifest (name, version, author)
+  plugin.json                  # Claude Code plugin manifest
+  marketplace.json             # Claude Code marketplace
+.codex-plugin/
+  plugin.json                  # Codex plugin manifest
+.agents/plugins/
+  marketplace.json             # Codex repository marketplace
 agents/
   backend.md                   # one file per agent: frontmatter + system prompt
   laravel-react.md
@@ -41,12 +46,12 @@ CONTRIBUTING.md
 
 ## Adding a skill
 
-1. Create `skills/<skill-name>/SKILL.md` with frontmatter:
+1. Create `skills/<skill-name>/SKILL.md` with frontmatter shared by Claude Code and Codex:
 
    ```markdown
    ---
    name: <skill-name>
-   description: One-paragraph description that lists the concrete topics covered and which agents consume the skill. Used by Claude Code to decide when to load it.
+   description: One-paragraph description listing concrete topics and trigger conditions. Used by Claude Code and Codex to decide when to load it.
    ---
 
    # Skill title
@@ -101,6 +106,8 @@ CONTRIBUTING.md
 
 ## Local testing
 
+### Claude Code
+
 After cloning, register the local checkout as a marketplace and install the plugin:
 
 ```text
@@ -118,6 +125,26 @@ claude plugin validate .
 
 Reload after edits with `/reload-plugins` (or restart the Claude Code session).
 
+### Codex
+
+Register this checkout as a local marketplace, install the plugin, and start a new session:
+
+```bash
+codex plugin marketplace add /absolute/path/to/laravel-claude-code-skills
+codex plugin add laravel-claude-code-skills@laravel-claude-code-skills
+```
+
+Validate the Codex manifest and every shared skill before committing:
+
+```bash
+python3 /path/to/plugin-creator/scripts/validate_plugin.py .
+for skill in skills/*; do
+  python3 /path/to/skill-creator/scripts/quick_validate.py "$skill"
+done
+```
+
+Codex discovers the plugin skills in a new session. The files under `agents/` are Claude Code subagent definitions and are intentionally ignored by Codex.
+
 ## Roadmap
 
 - Livewire skill and agent
@@ -129,6 +156,7 @@ Reload after edits with `/reload-plugins` (or restart the Claude Code session).
 | Component | State |
 |---|---|
 | Plugin scaffolding (manifest, dirs) | done |
+| Codex plugin and repository marketplace | done |
 | 10 skills on the active template (workflows + decision tables + reference routing) | done |
 | 8 agent prompts (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`, `qa`, `db-performance`) | done |
 | Shared stack detection (`scripts/detect-stack.sh`) | done |

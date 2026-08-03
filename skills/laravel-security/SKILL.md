@@ -1,6 +1,6 @@
 ---
 name: laravel-security
-description: Application security posture for Laravel 12 / PHP 8.3+ — OWASP Top 10:2025 applied (mass assignment, SQL injection, XSS, CSRF, SSRF, IDOR, auth failures, supply chain), security headers (CSP, HSTS, X-Frame-Options), rate limiting, cookies and sessions, timing attacks, file upload safety, dependency CVEs (composer audit, npm audit), secret management, audit logging, PHP-specific gotchas (deserialization, type juggling), and compliance (LGPD, GDPR, SOC 2, PCI, HIPAA). Use when: pre-production hardening, PR security review, CVE triage, "is this safe?" questions, incident follow-up. Consumed by security, code-review, and backend agents.
+description: 'Application security posture for Laravel 12 / PHP 8.3+ — OWASP Top 10:2025 applied (mass assignment, SQL injection, XSS, CSRF, SSRF, IDOR, auth failures, supply chain), security headers (CSP, HSTS, X-Frame-Options), rate limiting, cookies and sessions, timing attacks, file upload safety, dependency CVEs (composer audit, npm audit), secret management, audit logging, PHP-specific gotchas (deserialization, type juggling), and compliance (LGPD, GDPR, SOC 2, PCI, HIPAA). Use when: pre-production hardening, PR security review, CVE triage, "is this safe?" questions, incident follow-up. Consumed by security, code-review, and backend agents.'
 ---
 
 # Laravel Security — Application posture
