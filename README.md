@@ -74,6 +74,47 @@ codex plugin add laravel-engineering-skills@laravel-engineering-skills
 
 Start a new session after changing a skill. For repository validation commands, see [CONTRIBUTING.md](./CONTRIBUTING.md#local-testing).
 
+### Install individual skills with `npx`
+
+The repository is also compatible with the open agent skills CLI. No npm package publication is required: the CLI installs skills directly from this GitHub repository.
+
+List the available skills:
+
+```bash
+npx skills@latest add gab3mioni/laravel-engineering-skills --list
+```
+
+Install one skill globally for Codex:
+
+```bash
+npx skills@latest add gab3mioni/laravel-engineering-skills \
+  --skill laravel-backend \
+  -a codex \
+  -g \
+  -y
+```
+
+Install one skill globally for Claude Code:
+
+```bash
+npx skills@latest add gab3mioni/laravel-engineering-skills \
+  --skill laravel-backend \
+  -a claude-code \
+  -g \
+  -y
+```
+
+Replace `laravel-backend` with any skill name, such as `laravel-integrations`, `laravel-observability`, `laravel-role-backend`, or `laravel-role-qa`. To install the complete collection:
+
+```bash
+npx skills@latest add gab3mioni/laravel-engineering-skills \
+  --all \
+  -g \
+  -y
+```
+
+This method installs the `SKILL.md` directories. Use the Claude Code or Codex plugin installation above when you also need the complete plugin manifests, Claude agents, marketplace metadata, or other plugin capabilities.
+
 
 ## What's included
 
