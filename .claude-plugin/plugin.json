@@ -1,7 +1,7 @@
 {
   "name": "laravel-engineering-skills",
   "version": "0.3.0",
-  "description": "Shared Laravel 12 roles and skills for Claude Code and Codex — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
+  "description": "Shared Laravel 12 roles and skills for AI coding agents — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
   "author": {
     "name": "Gabriel Mioni"
   },

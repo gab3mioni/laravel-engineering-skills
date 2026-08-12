@@ -1,10 +1,10 @@
 # Laravel Engineering Skills
 
-Opinionated plugin for the **Laravel 12** ecosystem, compatible with both [Claude Code](https://claude.com/claude-code) and [Codex](https://developers.openai.com/codex/). It bundles reusable skills for idiomatic, type-safe, well-tested Laravel backend, frontend (Inertia + React/Vue), DevOps, code review, and security. Claude Code also receives the specialized subagents included in `agents/`.
+Opinionated skills for the **Laravel 12** ecosystem. The collection provides reusable procedures for idiomatic, type-safe, well-tested Laravel backend, frontend (Inertia + React/Vue), DevOps, code review, security, integrations, and observability. Optional agent wrappers are included for hosts that support them.
 
 ## Installation
 
-Install the plugin in the host you use. Claude Code and Codex have separate plugin registries, so installing it in one host does not install it in the other.
+Install the collection using the method supported by your AI coding agent. Plugin registries are host-specific, so installing the plugin in one host does not install it in another.
 
 ### Claude Code
 
@@ -21,7 +21,7 @@ Install the plugin in the host you use. Claude Code and Codex have separate plug
 /plugin install laravel-engineering-skills@laravel-engineering-skills
 ```
 
-The `@laravel-engineering-skills` suffix is the marketplace identifier. After installation, start a new session or reload plugins if Claude Code asks for it. The eight Claude agents remain available, and each one loads its corresponding shared `laravel-role-*` skill.
+The `@laravel-engineering-skills` suffix is the marketplace identifier. After installation, start a new session or reload plugins if requested. The eight agent wrappers remain available, and each one loads its corresponding shared `laravel-role-*` skill.
 
 You can also install through the interactive interface:
 
@@ -61,7 +61,7 @@ codex plugin add laravel-engineering-skills@laravel-engineering-skills
 3. Select the `laravel-engineering-skills` marketplace.
 4. Install `laravel-engineering-skills`.
 
-Codex loads the shared skills and roles directly. The files under `agents/` are Claude Code wrappers and are not loaded by Codex.
+This installation loads the shared skills and roles directly. The files under `agents/` are optional host-specific wrappers.
 
 #### Use a local checkout
 
@@ -84,7 +84,7 @@ List the available skills:
 npx skills@latest add gab3mioni/laravel-engineering-skills --list
 ```
 
-Install one skill globally for Codex:
+Install one skill globally for a Codex-compatible host:
 
 ```bash
 npx skills@latest add gab3mioni/laravel-engineering-skills \
@@ -94,7 +94,7 @@ npx skills@latest add gab3mioni/laravel-engineering-skills \
   -y
 ```
 
-Install one skill globally for Claude Code:
+Install one skill globally for a Claude-compatible host:
 
 ```bash
 npx skills@latest add gab3mioni/laravel-engineering-skills \
@@ -113,12 +113,12 @@ npx skills@latest add gab3mioni/laravel-engineering-skills \
   -y
 ```
 
-This method installs the `SKILL.md` directories. Use the Claude Code or Codex plugin installation above when you also need the complete plugin manifests, Claude agents, marketplace metadata, or other plugin capabilities.
+This method installs the `SKILL.md` directories. Use the host plugin installation above when you also need complete plugin manifests, agent wrappers, marketplace metadata, or other plugin capabilities.
 
 
 ## What's included
 
-### Claude Code agents
+### Agent wrappers
 
 - **`backend`** — Eloquent, controllers, FormRequests, services, jobs, migrations, API design.
 - **`laravel-react`** — Inertia v2 + React 19 (hooks, `useForm`, partial reloads, deferred props, Wayfinder routes).
@@ -129,17 +129,17 @@ This method installs the `SKILL.md` directories. Use the Claude Code or Codex pl
 - **`qa`** — Writes the tests other agents owe: Pest feature/unit tests, factories, fakes, Inertia assertions. Owns `tests/` and `database/factories/`.
 - **`db-performance`** — Read-only diagnostician: hunts N+1s, audits indexes with EXPLAIN, picks chunk/cursor strategies; proposes fixes for `backend` to apply.
 
-All agents inherit the Claude Code session model. Codex consumes the shared skills directly; Claude-specific agent definitions are not loaded by Codex.
+Agent wrappers inherit the host session model. The shared roles remain the canonical procedures, while wrappers provide host-specific tools and activation behavior.
 
 ### Shared roles
 
-Codex loads the eight shared `laravel-role-*` skills directly. Claude Code agents with the same names are compatibility wrappers that load those roles, so ownership, handoffs, and Definition of Done stay in one place.
+The eight shared `laravel-role-*` skills are the canonical roles. The wrappers with matching names load those roles, so ownership, handoffs, and Definition of Done stay in one place.
 
 ### Skills
 
 `laravel-backend` · `laravel-frontend` · `laravel-inertia` · `laravel-queues` · `laravel-auth` · `laravel-static-analysis` · `laravel-a11y` · `laravel-qa` · `laravel-security` · `laravel-deploy` · `laravel-observability` · `laravel-integrations`
 
-Skills are procedures and checklists agents follow — workflows with verification steps, decision tables, and anti-pattern greps, loaded on demand. `laravel-qa` is universal — every agent that touches code writes, runs, or audits tests against it.
+Skills are procedures and checklists AI coding agents follow — workflows with verification steps, decision tables, and anti-pattern greps, loaded on demand. `laravel-qa` is universal — every agent that touches code writes, runs, or audits tests against it.
 
 **Scope:** the plugin targets the Inertia stack (React/Vue SPAs) with Laravel Wayfinder for client-side routes. Livewire and Filament are out of scope.
 
@@ -147,16 +147,16 @@ Playwright MCP support is optional. When its tools are exposed, QA and frontend 
 
 ## Usage
 
-Both hosts can select skills automatically from the task context. Claude Code can also activate its specialized agents proactively (editing a controller routes you to `backend`; reviewing a diff routes you to `code-review`).
+Compatible hosts can select skills automatically from task context. Hosts that support agent wrappers can also activate specialized agents proactively, such as `backend` for controller work or `code-review` for branch review.
 
-To invoke a Claude Code agent explicitly:
+To invoke an agent explicitly, use the syntax supported by your host. For example, Claude Code uses:
 
 ```text
 @backend create a FormRequest for the order checkout endpoint
 @code-review audit the current branch
 ```
 
-To invoke a skill explicitly in Codex, mention it with `$`:
+Codex-style skill invocation uses `$`:
 
 ```text
 $laravel-backend create a FormRequest for the order checkout endpoint

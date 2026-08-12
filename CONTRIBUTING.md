@@ -1,21 +1,30 @@
 # Contributing
 
-Thanks for your interest in `laravel-engineering-skills`. This document covers the repo layout, how to add an agent or skill, and the conventions the project follows across Claude Code and Codex.
+Thanks for your interest in `laravel-engineering-skills`. This document covers the repository layout, how to add a skill or agent wrapper, and the conventions shared across supported AI coding agents.
 
 ## Language
 
 All committed content is **English** — README, this file, `SKILL.md`, agent prompts, references, code comments, and commit messages. Issues and PRs may be opened in any language.
 
+## Commit discipline
+
+- Keep commits atomic and separated by domain. A typical change may use separate commits for shared roles, domain skills, validation tooling, and documentation or manifests.
+- Write commit messages in English, using the imperative mood and a concise subject line of about 50 characters when practical. Examples: `Add shared Laravel engineering roles` and `Document npx skills installation`.
+- Use the commit body to explain durable context: what changed and why. Do not include session history, review phases, temporary notes, or AI authorship and co-author trailers.
+- Stage explicit paths only. Review `git diff --cached` before committing and confirm that `.env`, credentials, generated binaries, build outputs, and unrelated user changes are not staged.
+- Run the relevant deterministic validators and `git diff --check` before committing. Never bypass hooks with `--no-verify`.
+- Do not amend or rewrite commits that may belong to another workstream. Do not create commits, force-push, or push changes unless explicitly requested.
+
 ## Repo layout
 
 ```
 .claude-plugin/
-  plugin.json                  # Claude Code plugin manifest
-  marketplace.json             # Claude Code marketplace
+  plugin.json                  # Claude-compatible plugin manifest
+  marketplace.json              # Claude-compatible marketplace
 .codex-plugin/
-  plugin.json                  # Codex plugin manifest
+  plugin.json                  # Codex-compatible plugin manifest
 .agents/plugins/
-  marketplace.json             # Codex repository marketplace
+  marketplace.json              # Codex-compatible repository marketplace
 agents/
   backend.md                   # one file per agent: frontmatter + system prompt
   laravel-react.md
@@ -46,12 +55,12 @@ CONTRIBUTING.md
 
 ## Adding a skill
 
-1. Create `skills/<skill-name>/SKILL.md` with frontmatter shared by Claude Code and Codex:
+1. Create `skills/<skill-name>/SKILL.md` with frontmatter shared by compatible AI coding agents:
 
    ```markdown
    ---
    name: <skill-name>
-   description: One-paragraph description listing concrete topics and trigger conditions. Used by Claude Code and Codex to decide when to load it.
+   description: One-paragraph description listing concrete topics and trigger conditions. Used by compatible agents to decide when to load it.
    ---
 
    # Skill title
@@ -85,11 +94,11 @@ CONTRIBUTING.md
 
 3. Read-only agents (e.g. `code-review`) must omit `Edit` and `Write` from `tools`.
 
-4. The system prompt should reference the skills the agent consumes by name so Claude loads them when activated.
+4. The system prompt should reference consumed skills by name so the host can load them when activated.
 
 ## Shared roles and skill dependency map
 
-The `laravel-role-*` directories are the canonical procedures consumed directly by Codex and loaded by the compatibility wrappers in `agents/`. Agents must not duplicate role instructions.
+The `laravel-role-*` directories are the canonical procedures consumed directly by compatible agents and loaded by the wrappers in `agents/`. Agent wrappers must not duplicate role instructions.
 
 | Skill | Consumed by |
 |---|---|
@@ -107,7 +116,7 @@ The `laravel-role-*` directories are the canonical procedures consumed directly 
 | `laravel-integrations` | `laravel-role-backend`, `laravel-role-security`, `laravel-role-code-review`, `laravel-role-qa` |
 | `laravel-qa/references/browser_and_visual_testing.md` | `laravel-role-react`, `laravel-role-vue`, `laravel-role-qa`, `laravel-a11y`, `laravel-frontend` |
 
-| Shared role | Claude wrapper |
+| Shared role | Agent wrapper |
 |---|---|
 | `laravel-role-backend` | `agents/backend.md` |
 | `laravel-role-code-review` | `agents/code-review.md` |
@@ -163,7 +172,7 @@ python3 scripts/validate_skills.py .
 python3 scripts/validate_manifests.py .
 ```
 
-Codex discovers the plugin skills in a new session. The files under `agents/` are Claude Code subagent definitions and are intentionally ignored by Codex.
+The host discovers plugin skills in a new session. The files under `agents/` are optional agent-wrapper definitions and may be ignored by hosts that do not support them.
 
 ## Roadmap
 
@@ -177,7 +186,7 @@ Codex discovers the plugin skills in a new session. The files under `agents/` ar
 | Plugin scaffolding (manifest, dirs) | done |
 | Codex plugin and repository marketplace | done |
 | Shared roles, 12 core skills, and provider-neutral integrations/observability | done |
-| 8 agent prompts (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`, `qa`, `db-performance`) | done |
+| 8 agent wrappers (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`, `qa`, `db-performance`) | done |
 | Shared stack detection (`scripts/detect-stack.sh`) | done |
 
 ## License

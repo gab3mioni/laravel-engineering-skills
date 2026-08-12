@@ -13,7 +13,7 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Laravel Engineering Skills",
-    "shortDescription": "Laravel 12 engineering workflows for Codex.",
+    "shortDescription": "Laravel 12 engineering workflows for AI coding agents.",
     "longDescription": "Opinionated Laravel 12 skills for building, reviewing, testing, securing, and deploying PHP applications with Inertia, React, or Vue.",
     "developerName": "Gabriel Mioni",
     "category": "Developer Tools",

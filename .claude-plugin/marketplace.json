@@ -1,6 +1,6 @@
 {
   "name": "laravel-engineering-skills",
-  "description": "Marketplace for the laravel-engineering-skills Claude Code and Codex plugin",
+  "description": "Marketplace for the laravel-engineering-skills AI coding agent plugin",
   "owner": {
     "name": "Gabriel Mioni"
   },
@@ -11,7 +11,7 @@
         "source": "github",
         "repo": "gab3mioni/laravel-engineering-skills"
       },
-      "description": "Shared Laravel 12 roles and skills for Claude Code and Codex — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
+      "description": "Shared Laravel 12 roles and skills for AI coding agents — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
       "homepage": "https://github.com/gab3mioni/laravel-engineering-skills",
       "repository": "https://github.com/gab3mioni/laravel-engineering-skills",
       "license": "MIT",
