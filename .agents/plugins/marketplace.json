@@ -1,11 +1,11 @@
 {
-  "name": "laravel-claude-code-skills",
+  "name": "laravel-engineering-skills",
   "interface": {
     "displayName": "Laravel Claude Code Skills"
   },
   "plugins": [
     {
-      "name": "laravel-claude-code-skills",
+      "name": "laravel-engineering-skills",
       "source": {
         "source": "local",
         "path": "./"

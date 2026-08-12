@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in `laravel-claudecode-toolkit`. This document covers the repo layout, how to add an agent or skill, and the conventions the project follows across Claude Code and Codex.
+Thanks for your interest in `laravel-engineering-skills`. This document covers the repo layout, how to add an agent or skill, and the conventions the project follows across Claude Code and Codex.
 
 ## Language
 
@@ -87,7 +87,9 @@ CONTRIBUTING.md
 
 4. The system prompt should reference the skills the agent consumes by name so Claude loads them when activated.
 
-## Skill / agent dependency map
+## Shared roles and skill dependency map
+
+The `laravel-role-*` directories are the canonical procedures consumed directly by Codex and loaded by the compatibility wrappers in `agents/`. Agents must not duplicate role instructions.
 
 | Skill | Consumed by |
 |---|---|
@@ -101,6 +103,20 @@ CONTRIBUTING.md
 | `laravel-qa` | every agent; `qa` follows its workflows as procedure |
 | `laravel-security` | `security`, `code-review`, `backend` |
 | `laravel-deploy` | `devops` |
+| `laravel-observability` | `laravel-role-devops`, `laravel-role-backend`, `laravel-role-security`, `laravel-role-code-review` |
+| `laravel-integrations` | `laravel-role-backend`, `laravel-role-security`, `laravel-role-code-review`, `laravel-role-qa` |
+| `laravel-qa/references/browser_and_visual_testing.md` | `laravel-role-react`, `laravel-role-vue`, `laravel-role-qa`, `laravel-a11y`, `laravel-frontend` |
+
+| Shared role | Claude wrapper |
+|---|---|
+| `laravel-role-backend` | `agents/backend.md` |
+| `laravel-role-code-review` | `agents/code-review.md` |
+| `laravel-role-db-performance` | `agents/db-performance.md` |
+| `laravel-role-devops` | `agents/devops.md` |
+| `laravel-role-react` | `agents/laravel-react.md` |
+| `laravel-role-vue` | `agents/laravel-vue.md` |
+| `laravel-role-qa` | `agents/qa.md` |
+| `laravel-role-security` | `agents/security.md` |
 
 `code-review` is universal and consumes every skill — review crosses every code domain. `laravel-qa` is universal in the other direction — every agent that writes, runs, or audits code touches it.
 
@@ -111,11 +127,11 @@ CONTRIBUTING.md
 After cloning, register the local checkout as a marketplace and install the plugin:
 
 ```text
-/plugin marketplace add /absolute/path/to/laravel-claude-code-skills
-/plugin install laravel-claudecode-toolkit@laravel-claude-code-skills
+/plugin marketplace add /absolute/path/to/laravel-engineering-skills
+/plugin install laravel-engineering-skills@laravel-engineering-skills
 ```
 
-The marketplace identifier (`laravel-claude-code-skills`) is defined in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The plugin identifier (`laravel-claudecode-toolkit`) is defined in [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json).
+The marketplace identifier (`laravel-engineering-skills`) is defined in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The plugin identifier (`laravel-engineering-skills`) is defined in [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json).
 
 Validate the manifests before committing:
 
@@ -130,8 +146,8 @@ Reload after edits with `/reload-plugins` (or restart the Claude Code session).
 Register this checkout as a local marketplace, install the plugin, and start a new session:
 
 ```bash
-codex plugin marketplace add /absolute/path/to/laravel-claude-code-skills
-codex plugin add laravel-claude-code-skills@laravel-claude-code-skills
+codex plugin marketplace add /absolute/path/to/laravel-engineering-skills
+codex plugin add laravel-engineering-skills@laravel-engineering-skills
 ```
 
 Validate the Codex manifest and every shared skill before committing:
@@ -141,15 +157,18 @@ python3 /path/to/plugin-creator/scripts/validate_plugin.py .
 for skill in skills/*; do
   python3 /path/to/skill-creator/scripts/quick_validate.py "$skill"
 done
+
+# Repository-level deterministic validation (stdlib only)
+python3 scripts/validate_skills.py .
+python3 scripts/validate_manifests.py .
 ```
 
 Codex discovers the plugin skills in a new session. The files under `agents/` are Claude Code subagent definitions and are intentionally ignored by Codex.
 
 ## Roadmap
 
-- Livewire skill and agent
-- Filament skill
-- Dedicated `secops` agent (operational security, beyond the current `security` agent's per-PR scope)
+- Evaluate additional framework/domain skills only when requested.
+- Improve provider adapters while keeping observability and integrations provider-neutral.
 
 ## Status
 
@@ -157,7 +176,7 @@ Codex discovers the plugin skills in a new session. The files under `agents/` ar
 |---|---|
 | Plugin scaffolding (manifest, dirs) | done |
 | Codex plugin and repository marketplace | done |
-| 10 skills on the active template (workflows + decision tables + reference routing) | done |
+| Shared roles, 12 core skills, and provider-neutral integrations/observability | done |
 | 8 agent prompts (`backend`, `code-review`, `devops`, `laravel-react`, `laravel-vue`, `security`, `qa`, `db-performance`) | done |
 | Shared stack detection (`scripts/detect-stack.sh`) | done |
 

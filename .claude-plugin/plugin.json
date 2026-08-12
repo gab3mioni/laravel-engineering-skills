@@ -1,7 +1,7 @@
 {
-  "name": "laravel-claudecode-toolkit",
-  "version": "0.2.0",
-  "description": "Specialized Laravel agents and skills for Claude Code — backend, frontend (React/Vue via Inertia + Wayfinder), QA, database performance, DevOps, deploy, code review, and security in the Laravel 12 ecosystem.",
+  "name": "laravel-engineering-skills",
+  "version": "0.3.0",
+  "description": "Shared Laravel 12 roles and skills for Claude Code and Codex — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
   "author": {
     "name": "Gabriel Mioni"
   },

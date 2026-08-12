@@ -1,19 +1,19 @@
 {
-  "name": "laravel-claude-code-skills",
-  "description": "Marketplace for the laravel-claudecode-toolkit Claude Code plugin",
+  "name": "laravel-engineering-skills",
+  "description": "Marketplace for the laravel-engineering-skills Claude Code and Codex plugin",
   "owner": {
     "name": "Gabriel Mioni"
   },
   "plugins": [
     {
-      "name": "laravel-claudecode-toolkit",
+      "name": "laravel-engineering-skills",
       "source": {
         "source": "github",
-        "repo": "gab3mioni/laravel-claude-code-skills"
+        "repo": "gab3mioni/laravel-engineering-skills"
       },
-      "description": "Specialized Laravel agents and skills for Claude Code — backend, frontend (React/Vue via Inertia + Wayfinder), QA, database performance, DevOps, deploy, code review, and security in the Laravel 12 ecosystem.",
-      "homepage": "https://github.com/gab3mioni/laravel-claude-code-skills",
-      "repository": "https://github.com/gab3mioni/laravel-claude-code-skills",
+      "description": "Shared Laravel 12 roles and skills for Claude Code and Codex — backend, frontend, QA, integrations, observability, DevOps, review, and security.",
+      "homepage": "https://github.com/gab3mioni/laravel-engineering-skills",
+      "repository": "https://github.com/gab3mioni/laravel-engineering-skills",
       "license": "MIT",
       "keywords": [
         "laravel",

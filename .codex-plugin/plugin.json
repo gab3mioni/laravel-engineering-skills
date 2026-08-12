@@ -1,18 +1,18 @@
 {
-  "name": "laravel-claude-code-skills",
-  "version": "0.2.0",
-  "description": "Laravel 12 skills for backend, frontend, Inertia, queues, auth, QA, security, static analysis, accessibility, and deployment.",
+  "name": "laravel-engineering-skills",
+  "version": "0.3.0",
+  "description": "Shared Laravel 12 roles and skills for backend, frontend, QA, integrations, observability, security, and deployment.",
   "author": {
     "name": "Gabriel Mioni",
     "url": "https://github.com/gab3mioni"
   },
-  "homepage": "https://github.com/gab3mioni/laravel-claude-code-skills",
-  "repository": "https://github.com/gab3mioni/laravel-claude-code-skills",
+  "homepage": "https://github.com/gab3mioni/laravel-engineering-skills",
+  "repository": "https://github.com/gab3mioni/laravel-engineering-skills",
   "license": "MIT",
-  "keywords": ["laravel", "php", "inertia", "react", "vue", "pest", "security", "skills"],
+  "keywords": ["laravel", "php", "inertia", "react", "vue", "pest", "security", "observability", "integrations", "skills"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Laravel Claude Code Skills",
+    "displayName": "Laravel Engineering Skills",
     "shortDescription": "Laravel 12 engineering workflows for Codex.",
     "longDescription": "Opinionated Laravel 12 skills for building, reviewing, testing, securing, and deploying PHP applications with Inertia, React, or Vue.",
     "developerName": "Gabriel Mioni",
