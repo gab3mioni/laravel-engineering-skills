@@ -26,12 +26,14 @@ Two operating principles:
 
 | Topic | Use instead |
 |---|---|
-| React component anatomy, hooks, `useForm` | `laravel-react` agent |
-| Vue component anatomy, composables, `useForm` | `laravel-vue` agent |
+| React component anatomy, hooks, `useForm` | `laravel-role-react` |
+| Vue component anatomy, composables, `useForm` | `laravel-role-vue` |
 | Inertia route mechanics (`router.visit`, partials) | `laravel-inertia` skill |
 | Vite/Tailwind/asset wiring | `laravel-frontend` skill |
 | Pest backend tests | `laravel-qa` skill |
 | Server-side validation rules feeding `props.errors` | `laravel-backend` skill |
+
+For optional browser verification of focus, keyboard, and responsive behavior, use `laravel-qa`'s `browser_and_visual_testing.md` reference. The MCP is never required.
 
 ## Stack assumptions
 
@@ -286,8 +288,8 @@ Tools: browser devtools (Inspect → Accessibility tab); axe; pa11y.
 
 | Topic | Owner |
 |---|---|
-| React component anatomy, hooks, `useForm`, error rendering | `laravel-react` agent |
-| Vue component anatomy, composables, `useForm`, error rendering | `laravel-vue` agent |
+| React component anatomy, hooks, `useForm`, error rendering | `laravel-role-react` |
+| Vue component anatomy, composables, `useForm`, error rendering | `laravel-role-vue` |
 | Inertia `router.on('navigate', ...)` event hookup | `laravel-inertia` skill |
 | `<html lang>` in the Blade shell, Vite config | `laravel-frontend` skill |
 | Server-side validation messages feeding `props.errors` | `laravel-backend` skill (FormRequests) |

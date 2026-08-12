@@ -1,11 +1,11 @@
 ---
 name: laravel-static-analysis
-description: Static analysis and quality tooling for Laravel 12 / PHP 8.3+ — Pint (formatting, presets, --test vs apply), Larastan/PHPStan (levels, baseline, ignore patterns, bootstrapping), Rector (php83/php84/laravel-12 sets, --dry-run vs --apply), Pest --coverage / --type-coverage, frontend type-check (tsc --noEmit, vue-tsc), pre-commit hooks, CI wiring, and the verify-then-apply discipline. Use when wiring or running pint/phpstan/rector, choosing a PHPStan level, adopting analysis on a legacy codebase, setting up CI quality gates, or debugging type-check failures. Consumed by the code-review and backend agents.
+description: Static analysis and quality tooling for Laravel 12 / PHP 8.3+ — Pint (formatting, presets, --test vs apply), Larastan/PHPStan (levels, baseline, ignore patterns, bootstrapping), Rector (php83/php84/laravel-12 sets, --dry-run vs --apply), Pest --coverage / --type-coverage, frontend type-check (tsc --noEmit, vue-tsc), pre-commit hooks, CI wiring, and the verify-then-apply discipline. Use when wiring or running pint/phpstan/rector, choosing a PHPStan level, adopting analysis on a legacy codebase, setting up CI quality gates, or debugging type-check failures. Used by shared backend and review roles.
 ---
 
 # Laravel Static Analysis — Pint, Larastan, Rector, type-check
 
-The verification toolchain for a Laravel 12 / PHP 8.3+ codebase. Stack-agnostic on the PHP side; covers the **TS/Vue type-check** at the level of "wire it into CI" (component conventions live with the `laravel-react`/`laravel-vue` agents). Designed for the agents that *write* (`backend`) and *review* (`code-review`). This skill also **owns CI quality-gate wiring for the whole plugin** — `laravel-qa`, `laravel-a11y`, and `laravel-security` route their CI questions here (§8).
+The verification toolchain for a Laravel 12 / PHP 8.3+ codebase. Stack-agnostic on the PHP side; covers the **TS/Vue type-check** at the level of "wire it into CI" (component conventions live with `laravel-role-react`/`laravel-role-vue`). Designed for the shared backend and review roles. This skill also **owns CI quality-gate wiring for the whole plugin** — `laravel-qa`, `laravel-a11y`, and `laravel-security` route their CI questions here (§8).
 
 ## When to use this skill
 
@@ -23,8 +23,8 @@ The verification toolchain for a Laravel 12 / PHP 8.3+ codebase. Stack-agnostic 
 | Choosing test cases, factory shapes, fakes | `laravel-qa` skill |
 | Eloquent / controller / domain conventions the tools enforce | `laravel-backend` skill |
 | OWASP-grade dependency CVEs (`composer audit`, `npm audit`) | `laravel-security` skill |
-| ESLint rules, React/Vue component conventions | `laravel-react` / `laravel-vue` **agents** |
-| CI runner infra (self-hosted runners, deploy pipelines) | `devops` **agent** — quality-gate jobs themselves live here (§8) |
+| ESLint rules, React/Vue component conventions | `laravel-role-react` / `laravel-role-vue` |
+| CI runner infra (self-hosted runners, deploy pipelines) | `laravel-role-devops` — quality-gate jobs themselves live here (§8) |
 
 ## Stack assumptions
 
@@ -305,7 +305,7 @@ Wire into `package.json`:
 }
 ```
 
-ESLint config and component-level rules belong to the `laravel-react` / `laravel-vue` agents. This skill stops at "run the type-checker in CI."
+ESLint config and component-level rules belong to `laravel-role-react` / `laravel-role-vue`. This skill stops at "run the type-checker in CI."
 
 ---
 
@@ -441,5 +441,5 @@ jobs:
 | Eloquent / controller / Form Request conventions enforced by Larastan | `laravel-backend` skill |
 | `composer audit`, `npm audit`, dependency CVEs | `laravel-security` skill |
 | a11y scanner config (axe-core, pa11y) for the CI jobs in §8 | `laravel-a11y` skill references |
-| ESLint rules, React/Vue component conventions | `laravel-react` / `laravel-vue` **agents** |
-| CI runner infra, deploy pipelines, caching strategy at scale | `devops` **agent** |
+| ESLint rules, React/Vue component conventions | `laravel-role-react` / `laravel-role-vue` |
+| CI runner infra, deploy pipelines, caching strategy at scale | `laravel-role-devops` |

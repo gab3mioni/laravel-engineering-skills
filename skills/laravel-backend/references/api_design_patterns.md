@@ -189,33 +189,7 @@ QueryBuilder::for(Post::class)
 
 ⚠️ Anti-pattern: passing user input directly to `orderBy` or column names without an allowlist — column-name injection.
 
-## 7. Idempotency keys
-
-For non-idempotent endpoints (`POST` that creates a charge), accept an `Idempotency-Key` header and cache the response:
-
-```php
-public function store(Request $request)
-{
-    $key = $request->header('Idempotency-Key');
-    if ($key) {
-        $cached = Cache::get("idempotent:$key");
-        if ($cached) return response()->json($cached['body'], $cached['status']);
-    }
-
-    $charge   = $this->createCharge(/* ... */);
-    $response = ['id' => $charge->id, 'status' => 'created'];
-
-    if ($key) {
-        Cache::put("idempotent:$key", ['body' => $response, 'status' => 201], 86400);
-    }
-
-    return response()->json($response, 201);
-}
-```
-
-⚠️ Cache TTL for idempotency keys: 24h is typical for payments, longer (7d) for resource creation. Don't cache forever — memory bloat.
-
-## 8. Rate limiting
+## 7. Rate limiting
 
 Define limiters in `AppServiceProvider::boot()` (Laravel 11+ has no RouteServiceProvider):
 
@@ -241,70 +215,7 @@ Route::post('/login', /* ... */)->middleware('throttle:login');
 
 Laravel automatically surfaces `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers.
 
-## 9. Webhooks
-
-### Incoming — verify signature
-
-```php
-public function handle(Request $request): Response
-{
-    $signature = $request->header('X-Signature');
-    $expected  = hash_hmac('sha256', $request->getContent(), config('webhooks.secret'));
-
-    if (! hash_equals($expected, $signature ?? '')) {
-        abort(401);
-    }
-
-    // Idempotency — webhooks may be re-sent
-    $eventId = $request->json('id');
-    if (WebhookEvent::where('event_id', $eventId)->exists()) {
-        return response()->noContent();
-    }
-
-    WebhookEvent::create(['event_id' => $eventId, 'payload' => $request->all()]);
-    ProcessWebhook::dispatch($eventId);
-
-    return response()->noContent();
-}
-```
-
-⚠️ Use `hash_equals` (constant-time), never `===`, for signature comparison.
-
-### Outgoing — retry strategy
-
-Send via a queued job with `$tries` and `$backoff`:
-
-```php
-class SendWebhook implements ShouldQueue
-{
-    public int $tries = 6;
-    public array $backoff = [10, 60, 300, 900, 3600, 7200];   // exponential, in seconds
-
-    public function __construct(public Webhook $webhook, public array $payload) {}
-
-    public function handle(): void
-    {
-        $signature = hash_hmac('sha256', json_encode($this->payload), $this->webhook->secret);
-
-        $response = Http::withHeaders(['X-Signature' => $signature])
-            ->timeout(10)
-            ->post($this->webhook->url, $this->payload);
-
-        if (! $response->successful()) {
-            throw new RuntimeException("Webhook returned {$response->status()}");
-        }
-    }
-
-    public function failed(Throwable $e): void
-    {
-        $this->webhook->markFailed($e);
-    }
-}
-```
-
-After all retries fail, the job lands in `failed_jobs` (see `laravel-queues`). The webhook is then marked dead and surfaced for manual review.
-
-## 10. Anti-patterns
+## 8. Anti-patterns
 
 | Smell | Why |
 |---|---|
@@ -314,9 +225,7 @@ After all retries fail, the job lands in `failed_jobs` (see `laravel-queues`). T
 | Missing `whenLoaded()` for relationships in resources | N+1 |
 | `paginate()` on infinite-scroll endpoint | `COUNT(*)` cost |
 | User input flowing into `orderBy` / column names | Column-name injection |
-| Webhook accepting events without idempotency check | Duplicate processing |
-| Webhook signature compared with `===` | Timing attack — use `hash_equals` |
-| Outgoing webhook without retry/backoff | Transient failures lose data |
 | API without rate limiting | Abusable; resource exhaustion |
-| Idempotency key cached forever | Memory bloat |
 | Public API endpoint without `auth:sanctum` AND no rate limit | Trivial abuse vector |
+
+Webhook signatures, retries, and cross-system idempotency are canonical in `laravel-integrations`.

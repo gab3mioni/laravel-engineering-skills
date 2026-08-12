@@ -1,6 +1,6 @@
 ---
 name: laravel-queues
-description: Queues and background jobs in Laravel 12 — connections (sync, database, redis, sqs, beanstalkd), Horizon, worker config, dispatching (afterCommit, delay, onQueue), retries and backoff, job middleware (RateLimited, WithoutOverlapping, ThrottlesExceptions, SkipIfBatchCancelled), batches and chains, failed jobs, encrypted payloads, scheduler integration, idempotency. Use when writing or reviewing any ShouldQueue job, choosing a queue connection, configuring workers or Horizon supervisors — or when symptoms appear such as "jobs never run", "queue backs up after deploy", "duplicate side effects from retries", "job runs but data is missing", "worker memory creep". Consumed by the backend, devops, and code-review agents.
+description: Queues and background jobs in Laravel 12 — connections (sync, database, redis, sqs, beanstalkd), Horizon, worker config, dispatching (afterCommit, delay, onQueue), retries and backoff, job middleware (RateLimited, WithoutOverlapping, ThrottlesExceptions, SkipIfBatchCancelled), batches and chains, failed jobs, encrypted payloads, scheduler integration, idempotency. Use when writing or reviewing any ShouldQueue job, choosing a queue connection, configuring workers or Horizon supervisors — or when symptoms appear such as "jobs never run", "queue backs up after deploy", "duplicate side effects from retries", "job runs but data is missing", "worker memory creep". Used by shared backend, DevOps, and review roles.
 ---
 
 # Laravel Queues — Background jobs at runtime
@@ -27,8 +27,8 @@ Reliable async work for Laravel 12 / PHP 8.3+. Covers the **mechanics** (connect
 | Mail / Notification queue dispatch | `laravel-backend` §9 |
 | `Bus::fake()`, `Queue::fake()`, assertion helpers | `laravel-qa` |
 | Supervisord / systemd templates **for Horizon** | this skill — `references/horizon_ops.md` §11–§12 |
-| Octane/FrankenPHP runtime, server provisioning, deploy pipelines | `devops` **agent** (not a skill) |
-| React/Vue frontend polling a job's progress | `laravel-react` / `laravel-vue` **agents** (not skills) |
+| Octane/FrankenPHP runtime, server provisioning, deploy pipelines | `laravel-role-devops` |
+| React/Vue frontend polling a job's progress | `laravel-role-react` / `laravel-role-vue` |
 | Encrypted payload threat model, secret leakage in failed-job table | `laravel-security` |
 
 ## Stack assumptions
@@ -515,4 +515,4 @@ Deep-dives live in `references/`. Route by task:
 | Mailable / Notification queue dispatch | `laravel-backend` §9 |
 | Encrypted payload threat model, secret hygiene in `failed_jobs` | `laravel-security` |
 | HTTP request throttling (`throttle:` route middleware — not job rate limiting, see §5) | `laravel-security` §8 |
-| Octane / FrankenPHP worker mode, provisioning, deploy pipelines | `devops` agent |
+| Octane / FrankenPHP worker mode, provisioning, deploy pipelines | `laravel-role-devops` |

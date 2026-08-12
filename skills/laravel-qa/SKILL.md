@@ -1,11 +1,11 @@
 ---
 name: laravel-qa
-description: QA and testing for Laravel 12 with Pest 3 — TDD workflow, regression tests, test-type and fake-vs-real decisions, HTTP/database/browser testing, arch tests, coverage and mutation. Use when writing any test, when a bug fix needs a regression test, when deciding what to fake vs hit real, when the suite is slow or flaky or fails only in parallel, or when a behavior change is about to land without a test. Universal — consumed by every agent in the plugin.
+description: QA and testing for Laravel 12 with Pest 3 — TDD workflow, regression tests, test-type and fake-vs-real decisions, HTTP/database/browser testing, arch tests, coverage and mutation. Use when writing any test, when a bug fix needs a regression test, when deciding what to fake vs hit real, when the suite is slow or flaky or fails only in parallel, or when a behavior change is about to land without a test. Universal across shared roles.
 ---
 
 # Laravel QA — Tests, factories, fakes
 
-Pest-first testing for Laravel 12 / PHP 8.3+. Universal skill — every agent that writes, runs, or audits code consumes this.
+Pest-first testing for Laravel 12 / PHP 8.3+. Universal skill — every shared role that writes, runs, or audits code consumes this.
 
 ## When to use this skill
 
@@ -26,8 +26,8 @@ Pest-first testing for Laravel 12 / PHP 8.3+. Universal skill — every agent th
 | Static analysis output (Pint, Larastan, Rector) and CI gate wiring | `laravel-static-analysis` skill |
 | Accessibility checks | `laravel-a11y` skill |
 | Security regression auditing | `laravel-security` skill |
-| JS component tests (Vitest, Testing Library) | (owned by the `laravel-react` / `laravel-vue` agents) |
-| CI runner infra, containers, pipelines | (owned by the `devops` agent) |
+| JS component tests (Vitest, Testing Library) | `laravel-role-react` / `laravel-role-vue` |
+| CI runner infra, containers, pipelines | `laravel-role-devops` |
 
 ## Stack assumptions
 
@@ -167,6 +167,8 @@ Assert component name and props with `assertInertia(fn (AssertableInertia $page)
 
 ### Browser testing (Dusk)
 
+For optional Playwright MCP smoke tests, visual evidence, responsive states, focus, and keyboard checks, load `references/browser_and_visual_testing.md`. Detect MCP tools at runtime; its absence never blocks the existing test suite.
+
 Detect: `composer show laravel/dusk`. Reserve Dusk for flows Feature + Inertia testing cannot reach (drag-and-drop, complex JS state, third-party widgets) — **Dusk is ~10× slower** than a Feature test covering the same route.
 
 ### Architecture tests
@@ -251,5 +253,5 @@ CI wiring (which gates block merge, cadence, YAML): load the `laravel-static-ana
 | Pint, Larastan, Rector, CI gates | `laravel-static-analysis` skill |
 | Browser a11y testing (axe via Dusk) | `laravel-a11y` skill |
 | Security regression tests | `laravel-security` skill |
-| Vitest / Testing Library for JS components | (owned by the `laravel-react` / `laravel-vue` agents) |
-| CI infrastructure, runners, containers | (owned by the `devops` agent) |
+| Vitest / Testing Library for JS components | `laravel-role-react` / `laravel-role-vue` |
+| CI infrastructure, runners, containers | `laravel-role-devops` |

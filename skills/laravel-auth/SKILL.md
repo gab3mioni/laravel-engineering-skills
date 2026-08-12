@@ -1,6 +1,6 @@
 ---
 name: laravel-auth
-description: Authentication and authorization in Laravel 12 — Sanctum (SPA cookies + API tokens), Fortify, Breeze, Passport, guards, middleware, Policies/Gates, hashing. Use when choosing Sanctum vs Passport vs Fortify, wiring SPA cookie auth, designing token abilities, protecting routes, writing/reviewing Policies, or auditing auth in a PR. Symptoms — "419 on login from SPA", "logged out on every request", "user logged out after deploy", "the authenticated user is null in a queued job", "token-protected route returns 401 with a valid token". Consumed by the security, backend, and code-review agents.
+description: Authentication and authorization in Laravel 12 — Sanctum (SPA cookies + API tokens), Fortify, Breeze, Passport, guards, middleware, Policies/Gates, hashing. Use when choosing Sanctum vs Passport vs Fortify, wiring SPA cookie auth, designing token abilities, protecting routes, writing/reviewing Policies, or auditing auth in a PR. Symptoms — "419 on login from SPA", "logged out on every request", "user logged out after deploy", "the authenticated user is null in a queued job", "token-protected route returns 401 with a valid token". Used by shared Laravel roles.
 ---
 
 # Laravel Auth — Authentication & authorization
@@ -27,7 +27,7 @@ Identity and access for Laravel 12. Covers **who you are** (authentication: Sanc
 | Vite wiring / Wayfinder route generation for the SPA | `laravel-frontend` skill |
 | Pest auth helpers (`actingAs`, `Sanctum::actingAs`) | `laravel-qa` skill |
 | Building the login/2FA UI components | `laravel-react` / `laravel-vue` **agents** |
-| Session driver infra (Redis), deploy-time session invalidation | `devops` **agent** |
+| Session driver infra (Redis), deploy-time session invalidation | `laravel-role-devops` |
 
 ## Stack assumptions
 

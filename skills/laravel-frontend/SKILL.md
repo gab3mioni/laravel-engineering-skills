@@ -1,6 +1,6 @@
 ---
 name: laravel-frontend
-description: Client-side wiring for Laravel 12 — Vite (laravel-vite-plugin, dev server, HMR, manifest), resources/js layout, Laravel Wayfinder (typed named routes/actions on the client), public env vars (VITE_*), code splitting, TypeScript posture, build artifacts, CSP-friendly bundling. Use when editing vite.config, wiring or regenerating Wayfinder routes, laying out resources/js, or debugging symptoms like "HMR not reloading", "manifest not found", "Vite dev server 404", or "asset 404 after deploy". Stack-neutral, consumed by the laravel-react, laravel-vue, and code-review agents.
+description: Client-side wiring for Laravel 12 — Vite (laravel-vite-plugin, dev server, HMR, manifest), resources/js layout, Laravel Wayfinder (typed named routes/actions on the client), public env vars (VITE_*), code splitting, TypeScript posture, build artifacts, CSP-friendly bundling. Use when editing vite.config, wiring or regenerating Wayfinder routes, laying out resources/js, or debugging symptoms like "HMR not reloading", "manifest not found", "Vite dev server 404", or "asset 404 after deploy". Used by shared React, Vue, and review roles.
 ---
 
 # Laravel Frontend — Vite, Wayfinder, asset wiring
@@ -21,12 +21,14 @@ The plumbing between Laravel and the client bundle. Stack-neutral — covers Vit
 
 | Topic | Use instead |
 |---|---|
-| React 19 components, hooks, `useForm` | `laravel-react` agent |
-| Vue 3.5 components, composables, `useForm` | `laravel-vue` agent |
+| React 19 components, hooks, `useForm` | `laravel-role-react` |
+| Vue 3.5 components, composables, `useForm` | `laravel-role-vue` |
 | Inertia protocol (props, partials, defer) | `laravel-inertia` skill |
 | WCAG / ARIA in components | `laravel-a11y` skill |
 | Pest assertions on rendered HTML | `laravel-qa` skill |
-| Octane/FrankenPHP runtime concerns | `devops` agent |
+| Octane/FrankenPHP runtime concerns | `laravel-role-devops` |
+
+After UI changes, route relevant browser smoke, responsive, loading/error-state, focus, and keyboard checks to `laravel-qa`'s optional `browser_and_visual_testing.md` reference. Playwright MCP is conditional.
 
 ## Stack assumptions
 
@@ -329,10 +331,10 @@ For strict CSP:
 | Topic | Where |
 |---|---|
 | Inertia protocol (props, partials, defer, polling, prefetching) | `laravel-inertia` skill |
-| React 19 components, hooks, `useForm` | `laravel-react` agent |
-| Vue 3.5 components, composables, `useForm` | `laravel-vue` agent |
+| React 19 components, hooks, `useForm` | `laravel-role-react` |
+| Vue 3.5 components, composables, `useForm` | `laravel-role-vue` |
 | `tsc --noEmit` / `vue-tsc` in CI flow | `laravel-static-analysis` skill |
 | WCAG / ARIA in components | `laravel-a11y` skill |
 | Auth state propagated via shared data | `laravel-auth` skill + `laravel-inertia` §4 |
 | CSP, X-Frame-Options, HSTS | `laravel-security` skill |
-| Octane interaction with Vite dev server | `devops` agent |
+| Octane interaction with Vite dev server | `laravel-role-devops` |

@@ -1,6 +1,6 @@
 ---
 name: laravel-inertia
-description: Inertia.js v2 protocol and Laravel 12 server adapter — prop strategies (closure, defer, optional, merge, always), shared data, partial reloads, polling, prefetching, WhenVisible, history encryption, asset versioning, redirects, SSR. Use when writing or reviewing any controller that returns Inertia::render, choosing how a prop ships, wiring shared data, or debugging symptoms like "page props stale after partial reload", "back button shows encrypted history error", "deferred prop never resolves", hydration mismatches after a deploy, or an infinite version-reload loop. Stack-neutral protocol skill consumed by the laravel-react, laravel-vue, and code-review agents.
+description: Inertia.js v2 protocol and Laravel 12 server adapter — prop strategies (closure, defer, optional, merge, always), shared data, partial reloads, polling, prefetching, WhenVisible, history encryption, asset versioning, redirects, SSR. Use when writing or reviewing any controller that returns Inertia::render, choosing how a prop ships, wiring shared data, or debugging symptoms like "page props stale after partial reload", "back button shows encrypted history error", "deferred prop never resolves", hydration mismatches after a deploy, or an infinite version-reload loop. Used by shared React, Vue, and review roles.
 ---
 
 # Laravel Inertia — Protocol & server adapter
@@ -22,13 +22,13 @@ When NOT to use:
 
 | Topic | Use instead | Kind |
 |---|---|---|
-| React 19 components, hooks, `useForm` (React) | `laravel-react` | agent |
-| Vue 3.5 components, composables, `useForm` (Vue) | `laravel-vue` | agent |
+| React 19 components, hooks, `useForm` (React) | `laravel-role-react` | shared role |
+| Vue 3.5 components, composables, `useForm` (Vue) | `laravel-role-vue` | shared role |
 | Vite, `resources/js` layout, Wayfinder generation | `laravel-frontend` | skill |
 | Pest assertions beyond the `assertInertia` template here | `laravel-qa` | skill |
 | Eloquent queries fed into props | `laravel-backend` | skill |
 | WCAG / ARIA on rendered components | `laravel-a11y` | skill |
-| Supervising the SSR process in production | `devops` | agent |
+| Supervising the SSR process in production | `laravel-role-devops` | shared role |
 
 ## Stack assumptions
 
@@ -435,8 +435,8 @@ php artisan inertia:start-ssr        # dev only — supervise via systemd/superv
 
 | Topic | Where | Kind |
 |---|---|---|
-| React components, hooks, `useForm` ergonomics (React) | `laravel-react` | agent |
-| Vue components, composables, `useForm` ergonomics (Vue) | `laravel-vue` | agent |
+| React components, hooks, `useForm` ergonomics (React) | `laravel-role-react` | shared role |
+| Vue components, composables, `useForm` ergonomics (Vue) | `laravel-role-vue` | shared role |
 | Vite, `resources/js` layout, Wayfinder route generation | `laravel-frontend` | skill |
 | `assertInertia` beyond the template here, Pest fakes/datasets | `laravel-qa` | skill |
 | Eloquent queries feeding props | `laravel-backend` | skill |

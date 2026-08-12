@@ -1,6 +1,6 @@
 ---
 name: laravel-backend
-description: Server-side core for Laravel 12 / PHP 8.3+. Use when editing models, controllers, migrations, FormRequests, API Resources, Actions/Services, events, observers, or policies; designing an API endpoint or building a new resource end-to-end; reviewing a backend diff; or chasing symptoms like "N+1 queries", "mass assignment", "env() returns null in production", "job reads stale data", or "403 from authorize()". Provides workflows (new resource, diff review, safe migration), decision tables, and a grep-able anti-pattern checklist. Consumed by the backend, security, and code-review agents.
+description: Server-side core for Laravel 12 / PHP 8.3+. Use when editing models, controllers, migrations, FormRequests, API Resources, Actions/Services, events, observers, or policies; designing an API endpoint or building a new resource end-to-end; reviewing a backend diff; or chasing symptoms like "N+1 queries", "mass assignment", "env() returns null in production", "job reads stale data", or "403 from authorize()". Provides workflows (new resource, diff review, safe migration), decision tables, and a grep-able anti-pattern checklist. Used by shared Laravel roles.
 ---
 
 # Laravel Backend — Server-side core
@@ -26,8 +26,8 @@ Idiomatic Laravel 12 / PHP 8.3+ patterns for server-side code, packaged as execu
 | Pint, Larastan, Rector | `laravel-static-analysis` skill |
 | OWASP, CSP, hardening, dep CVEs, compliance | `laravel-security` skill |
 | WCAG, ARIA | `laravel-a11y` skill |
-| React/Vue components, pages, client-side state | (owned by the `laravel-react` / `laravel-vue` agent) |
-| Deploy, Docker, CI/CD, Octane runtime, infra | (owned by the `devops` agent) |
+| React/Vue components, pages, client-side state | `laravel-role-react` / `laravel-role-vue` |
+| Deploy, Docker, CI/CD, Octane runtime, infra | `laravel-role-devops` |
 
 ## Reference routing
 
@@ -39,7 +39,8 @@ Load a reference only when the task hits its trigger — the sections below cove
 | Morphs, pivot models, JSON column relationships, custom builders, custom cast examples | `references/eloquent_advanced.md` |
 | Production migration on a big table, zero-downtime schema change, FK cascade choices | `references/schema_and_migration_safety.md` |
 | Cache stampede, tagged invalidation, atomic locks, layered caches | `references/cache_patterns.md` |
-| Public API: pagination, versioning, error format, sorting/filtering, idempotency, webhooks | `references/api_design_patterns.md` |
+| Public API: pagination, versioning, error format, sorting/filtering | `references/api_design_patterns.md` |
+| External webhooks, idempotency keys, retries, and vendor APIs | `laravel-integrations` skill |
 | Backend security touchpoints (mass assignment depth, raw bindings, uploads, payload hygiene) | `references/security.md` |
 | Policy composition, multi-tenant authorization, Spatie Permission | `laravel-auth` skill (not a local reference) |
 
@@ -626,5 +627,5 @@ For backend-specific security touchpoints, see `references/security.md`. For bro
 | Pint, Larastan, Rector, architecture tests | `laravel-static-analysis` skill |
 | OWASP, hardening, headers, dep CVEs, compliance | `laravel-security` skill |
 | WCAG, ARIA | `laravel-a11y` skill |
-| React/Vue implementation in `resources/js` | `laravel-react` / `laravel-vue` agents |
-| Deploy, containers, CI/CD, Octane runtime | `devops` agent |
+| React/Vue implementation in `resources/js` | `laravel-role-react` / `laravel-role-vue` |
+| Deploy, containers, CI/CD, Octane runtime | `laravel-role-devops` |

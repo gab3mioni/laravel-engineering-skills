@@ -1,6 +1,6 @@
 ---
 name: laravel-security
-description: 'Application security posture for Laravel 12 / PHP 8.3+ — OWASP Top 10:2025 applied (mass assignment, SQL injection, XSS, CSRF, SSRF, IDOR, auth failures, supply chain), security headers (CSP, HSTS, X-Frame-Options), rate limiting, cookies and sessions, timing attacks, file upload safety, dependency CVEs (composer audit, npm audit), secret management, audit logging, PHP-specific gotchas (deserialization, type juggling), and compliance (LGPD, GDPR, SOC 2, PCI, HIPAA). Use when: pre-production hardening, PR security review, CVE triage, "is this safe?" questions, incident follow-up. Consumed by security, code-review, and backend agents.'
+description: 'Application security posture for Laravel 12 / PHP 8.3+ — OWASP Top 10:2025 applied (mass assignment, SQL injection, XSS, CSRF, SSRF, IDOR, auth failures, supply chain), security headers (CSP, HSTS, X-Frame-Options), rate limiting, cookies and sessions, timing attacks, file upload safety, dependency CVEs (composer audit, npm audit), secret management, audit logging, PHP-specific gotchas (deserialization, type juggling), and compliance (LGPD, GDPR, SOC 2, PCI, HIPAA). Use when: pre-production hardening, PR security review, CVE triage, "is this safe?" questions, incident follow-up. Used by shared security and review roles.'
 ---
 
 # Laravel Security — Application posture
@@ -25,8 +25,8 @@ Application-wide security for Laravel 12 / PHP 8.3+. Operates above the per-feat
 | Policy / Gate authoring patterns | `laravel-backend` skill §13 + `laravel-auth` skill (`authorization_patterns` reference) |
 | Test scenarios for security regressions | `laravel-qa` skill |
 | WCAG / a11y audits | `laravel-a11y` skill |
-| Frontend component fixes (React/Vue) after an XSS finding | `laravel-react` / `laravel-vue` agents |
-| Infra hardening (TLS termination, WAF, container images, CI secrets) | `devops` agent |
+| Frontend component fixes (React/Vue) after an XSS finding | `laravel-role-react` / `laravel-role-vue` |
+| Infra hardening (TLS termination, WAF, container images, CI secrets) | `laravel-role-devops` |
 
 ## Stack assumptions
 
@@ -451,7 +451,7 @@ AWS Secrets Manager (+ IAM role), GCP Secret Manager (+ Workload Identity), Hash
 
 ⚠️ Anti-pattern: secret committed to git history. Rotation is mandatory — `git filter-branch` does not save you (clones still have the secret).
 
-## 15. Audit logging & monitoring
+## 15. Audit logging
 
 Detect `spatie/laravel-activitylog` (`composer show spatie/laravel-activitylog`); if present, use `LogsActivity` with `LogOptions::defaults()->logOnly([...])->logOnlyDirty()`. Without the package, an Observer + dedicated `audit_log` table works. Key requirements:
 
@@ -465,7 +465,7 @@ Detect `spatie/laravel-activitylog` (`composer show spatie/laravel-activitylog`)
 
 Log: login success/fail, password change/reset, MFA enable/disable, permission changes, sensitive-data access (PII, financial), data exports. Do NOT log routine reads — too noisy.
 
-### 15.2 Where to send logs
+### 15.2 Where to send audit records
 
 Stack channels in `config/logging.php` toward a centralized destination (Sentry, Datadog, CloudWatch, ELK) — never *only* local files in production.
 
@@ -476,6 +476,8 @@ Log::info('payment.received', $request->all());   // BAD — leaks card, email, 
 ```
 
 Always scrub. Load `laravel-backend` (`security` reference §7) for scrub helpers.
+
+Operational logs, metrics, job monitoring, health checks, alerts, and incident response are canonical in `laravel-observability`. Use that skill instead of duplicating operational telemetry here.
 
 ## 16. PHP-specific gotchas
 

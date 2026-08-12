@@ -1,6 +1,6 @@
 ---
 name: laravel-deploy
-description: Deploy and runtime for Laravel 12 — runtime choice (FrankenPHP/Octane vs PHP-FPM), zero-downtime deploys, CI quality gates, Docker image patterns, supervisord/systemd templates, scheduler in clusters, env/secret management, health checks and rollback. Use when writing Dockerfiles, CI pipelines, deploy scripts, or supervisor configs — or when symptoms appear such as "site down during deploy", "workers running stale code", "sessions invalidated after deploy", "cron ran on every server". Consumed by the devops agent.
+description: Deploy and runtime for Laravel 12 — runtime choice (FrankenPHP/Octane vs PHP-FPM), zero-downtime deploys, CI quality gates, Docker image patterns, supervisord/systemd templates, scheduler in clusters, env/secret management, health checks and rollback. Use when writing Dockerfiles, CI pipelines, deploy scripts, or supervisor configs — or when symptoms appear such as "site down during deploy", "workers running stale code", "sessions invalidated after deploy", "cron ran on every server". Used by `laravel-role-devops`.
 ---
 
 # Laravel Deploy — Runtime and shipping
@@ -24,10 +24,12 @@ Predictable, reversible, observable deploys for Laravel 12 / PHP 8.3+. Covers th
 |---|---|
 | Queue mechanics — connections, retries, Horizon config, job design | `laravel-queues` skill |
 | CI gate tool specifics — Pint presets, PHPStan levels, Rector sets, baselines | `laravel-static-analysis` skill |
-| Application code — controllers, models, jobs, migration contents | owned by the `backend` **agent** (not a skill) |
+| Application code — controllers, models, jobs, migration contents | `laravel-role-backend` |
 | Image CVEs, hardening depth, secret threat models, CSP at the edge | `laravel-security` skill |
 | Vite build internals, manifest contract with `@vite` | `laravel-frontend` skill |
 | Test suites wired into CI (`pest --coverage` semantics) | `laravel-qa` skill |
+
+Application logs, metrics, health semantics, SLOs, alerting, incident response, and deploy observability are owned by `laravel-observability`. This skill owns only runtime/deployment wiring and invokes those checks during rollout.
 
 ## Stack assumptions
 
@@ -338,5 +340,5 @@ The app boots **once** and serves many requests. Everything that assumed a fresh
 | Pest coverage gates, test-suite CI semantics | `laravel-qa` skill |
 | Image CVEs, secret threat models, security headers at the edge | `laravel-security` skill |
 | Vite manifest contract, asset hashing, `@vite` directive | `laravel-frontend` skill |
-| Application code touched by a deploy concern (jobs, models, controllers) | `backend` **agent** (not a skill) |
-| Reviewing a deploy-related PR end to end | `code-review` **agent** (not a skill) |
+| Application code touched by a deploy concern (jobs, models, controllers) | `laravel-role-backend` |
+| Reviewing a deploy-related PR end to end | `laravel-role-code-review` |
